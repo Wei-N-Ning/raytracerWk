@@ -7,6 +7,13 @@
 
 namespace RTWK {
 
+Vec3 backgroundColor(Ray& r) {
+    RTWK::Vec3 dir = r.direction().normalized();
+    float t = 0.5f * (dir.y() + 1.0f);
+    return (1.0f - t) * RTWK::Vec3(1.0, 1.0, 1.0) +
+           t * RTWK::Vec3(0.5, 0.7, 1.0);
+}
+
 void createTestImage(std::ostream &os, int xNumPixels, int yNumPixels) {
     os << "P3" << std::endl
        << xNumPixels << " " << yNumPixels << std::endl

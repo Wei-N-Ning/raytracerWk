@@ -36,9 +36,7 @@ RTWK::Vec3 opaqueSphere(RTWK::Ray& ray) {
     if (hitSphere(ray, {0, 0, -1}, RADIUS)) {
         return {1, 0, 0};
     }
-    float t = 0.5f * (dir.y() + 1.0f);
-    return (1.0f - t) * RTWK::Vec3(1.0, 1.0, 1.0) +
-           t * RTWK::Vec3(0.5, 0.7, 1.0);
+    return RTWK::backgroundColor(ray);
 }
 
 void test_renderSphere() {

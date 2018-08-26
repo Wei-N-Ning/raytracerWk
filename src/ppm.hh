@@ -18,6 +18,9 @@ namespace RTWK {
 // exercise
 using RayFunction = Vec3 (Ray&);
 
+// The default sky-blue gradient background
+Vec3 backgroundColor(Ray& ray);
+
 void createTestImage(
     std::ostream &os,
     int xNumPixels, int yNumPixels);
