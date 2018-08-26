@@ -4,4 +4,5 @@ project(Raytracer-In-A-Weekend)
 enable_testing()
 include(tinyCUnit/tinyCUnit.cmake)
 
+add_subdirectory(src)
 add_subdirectory(tests)
