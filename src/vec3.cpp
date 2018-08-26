@@ -167,11 +167,11 @@ Vec3 operator*(const Vec3 &lhs, float v) {
         v * lhs.m_elements[2]);
 }
 
-Vec3 operator/(float v, const Vec3 &rhs) {
+Vec3 operator/(const Vec3 &lhs, float v) {
     return Vec3(
-        v / rhs.m_elements[0],
-        v / rhs.m_elements[1],
-        v / rhs.m_elements[2]);
+        lhs.m_elements[0] / v,
+        lhs.m_elements[1] / v,
+        lhs.m_elements[2] / v);
 }
 
 float dot(const Vec3 &lhs, const Vec3 &rhs) {
@@ -186,6 +186,16 @@ Vec3 cross(const Vec3 &lhs, const Vec3 &rhs) {
         lhs.m_elements[2] * rhs.m_elements[0] - lhs.m_elements[0] * rhs.m_elements[2],
         lhs.m_elements[0] * rhs.m_elements[1] - lhs.m_elements[1] * rhs.m_elements[0]
     );
+}
+
+bool operator== (const Vec3& lhs, const Vec3& rhs) {
+    return lhs.m_elements[0] == rhs.m_elements[0] &&
+        lhs.m_elements[1] == rhs.m_elements[1] &&
+        lhs.m_elements[2] == rhs.m_elements[2];
+}
+
+Vec3 Vec3::normalized() const {
+    return *this / length();
 }
 
 }

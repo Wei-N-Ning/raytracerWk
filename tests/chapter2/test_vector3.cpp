@@ -105,6 +105,12 @@ void test_cross_product() {
     vec3_equal({0, 0, -1}, result);
 }
 
+void test_normalize() {
+    using namespace RTWK;
+
+    vec3_equal({1, 0, 0}, Vec3{10, 0, 0}.normalized());
+}
+
 int main(int argc, char **argv) {
     RunTinyTests();
     return 0;

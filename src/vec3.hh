@@ -54,6 +54,7 @@ struct Vec3 {
     float sqr_length() const;
 
     static Vec3 unit();
+    Vec3 normalized() const;
 
     std::vector<float> m_elements;
 };
@@ -67,10 +68,12 @@ Vec3 operator- (const Vec3& lhs, const Vec3& rhs);
 Vec3 operator/ (const Vec3& lhs, const Vec3& rhs);
 Vec3 operator* (float v, const Vec3& rhs);
 Vec3 operator* (const Vec3& lhs, float v);
-Vec3 operator/ (float v, const Vec3& rhs);
+Vec3 operator/ (const Vec3& lhs, float v);
 
 float dot(const Vec3& lhs, const Vec3& rhs);
 Vec3 cross(const Vec3& lhs, const Vec3& rhs);
+
+bool operator== (const Vec3& lhs, const Vec3& rhs);
 
 }
 
