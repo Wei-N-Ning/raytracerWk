@@ -4,6 +4,7 @@
 
 #include <ray.hh>
 #include <vec3.hh>
+#include <ppm.hh>
 
 #include <iostream>
 #include <fstream>
@@ -11,13 +12,15 @@
 
 void RunTinyTests();
 
+//! To be plugged in to createImage() function
+//!
 //! P10-11
 //! The color() function linearly blends white and blue depending on the
 //! up/downess of the y coordinate
 //! A lerp (linear interpolation) is always of the form
 //! blended_value = (1 - t) * start_value + t * end_value
 //! with t going from zero to one
-RTWK::Vec3 color(const RTWK::Ray& r) {
+RTWK::Vec3 simpleGradient(RTWK::Ray& r) {
     RTWK::Vec3 dir = r.direction().normalized();
     // from un-normalized to normalized [-1.0, 1.0]
     // then shifted to [0, 2.0] and scaled down to
@@ -40,36 +43,7 @@ void test_color() {
     std::ofstream ofs;
     ofs.open("/tmp/color.ppm");
     assert(ofs.good());
-
-    int xNumPixels = 200;
-    int yNumPixels = 100;
-    ofs << "P3" << std::endl
-        << xNumPixels << " " << yNumPixels << std::endl
-        << "255" << std::endl;
-
-    Vec3 lowerLeft(-2.0f, -1.0f, -1.0f);
-    Vec3 horizontal(4, 0, 0);
-    Vec3 vertical(0, 2, 0);
-    Vec3 origin(0, 0, 0);
-
-    for (int y = yNumPixels - 1; y >= 0; --y) {
-        for (int x = 0; x < xNumPixels; ++x) {
-            //! P9
-            //! "I will reverse the screen from the lower left hand
-            //! corner and use two offset vectors along the screen sides
-            //! to move the ray endpoint across the screen"
-            float u = float(x) / float(xNumPixels);
-            float v = float(y) / float(yNumPixels);
-            Ray r(origin, lowerLeft + u * horizontal + v * vertical);
-            Vec3 c = color(r);
-            int ir = int(255.99 * c.r());
-            int ig = int(255.99 * c.g());
-            int ib = int(255.99 * c.b());
-
-            ofs << ir << " " << ig << " " << ib << std::endl;
-        }
-    }
-
+    createImage(ofs, 200, 100, simpleGradient);
 }
 
 int main(int argc, char **argv) {

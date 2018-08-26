@@ -7,6 +7,6 @@
 #include <iostream>
 
 int main(int argc, char **argv) {
-    RTWK::createImage(std::cout, 128, 128);
+    RTWK::createTestImage(std::cout, 128, 128);
     return 0;
 }
