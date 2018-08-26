@@ -113,17 +113,79 @@ Vec3 Vec3::unit() {
     return {1, 1, 1};
 }
 
-std::istream& operator>> (std::istream& is, Vec3& v) {
+std::istream &operator>>(std::istream &is, Vec3 &v) {
     is >> v.m_elements[0] >> v.m_elements[1] >> v.m_elements[2];
     return is;
 }
 
-std::ostream& operator<< (std::ostream& os, const Vec3& v) {
+std::ostream &operator<<(std::ostream &os, const Vec3 &v) {
     os << v.m_elements[0] << " "
        << v.m_elements[1] << " "
        << v.m_elements[2];
-   return os;
+    return os;
+}
+
+Vec3 operator+(const Vec3 &lhs, const Vec3 &rhs) {
+    return Vec3(
+        lhs.m_elements[0] + rhs.m_elements[0],
+        lhs.m_elements[1] + rhs.m_elements[1],
+        lhs.m_elements[2] + rhs.m_elements[2]);
+}
+
+Vec3 operator-(const Vec3 &lhs, const Vec3 &rhs) {
+    return Vec3(
+        lhs.m_elements[0] - rhs.m_elements[0],
+        lhs.m_elements[1] - rhs.m_elements[1],
+        lhs.m_elements[2] - rhs.m_elements[2]);
+}
+
+Vec3 operator*(const Vec3 &lhs, const Vec3 &rhs) {
+    return Vec3(
+        lhs.m_elements[0] * rhs.m_elements[0],
+        lhs.m_elements[1] * rhs.m_elements[1],
+        lhs.m_elements[2] * rhs.m_elements[2]);
+}
+
+Vec3 operator/(const Vec3 &lhs, const Vec3 &rhs) {
+    return Vec3(
+        lhs.m_elements[0] / rhs.m_elements[0],
+        lhs.m_elements[1] / rhs.m_elements[1],
+        lhs.m_elements[2] / rhs.m_elements[2]);
+}
+
+Vec3 operator*(float v, const Vec3 &rhs) {
+    return Vec3(
+        v * rhs.m_elements[0],
+        v * rhs.m_elements[1],
+        v * rhs.m_elements[2]);
+}
+
+Vec3 operator*(const Vec3 &lhs, float v) {
+    return Vec3(
+        v * lhs.m_elements[0],
+        v * lhs.m_elements[1],
+        v * lhs.m_elements[2]);
+}
+
+Vec3 operator/(float v, const Vec3 &rhs) {
+    return Vec3(
+        v / rhs.m_elements[0],
+        v / rhs.m_elements[1],
+        v / rhs.m_elements[2]);
+}
+
+float dot(const Vec3 &lhs, const Vec3 &rhs) {
+    return lhs.m_elements[0] * rhs.m_elements[0] +
+           lhs.m_elements[1] * rhs.m_elements[1] +
+           lhs.m_elements[2] * rhs.m_elements[2];
+}
+
+Vec3 cross(const Vec3 &lhs, const Vec3 &rhs) {
+    return Vec3(
+        lhs.m_elements[1] * rhs.m_elements[2] - lhs.m_elements[2] * rhs.m_elements[1],
+        lhs.m_elements[2] * rhs.m_elements[0] - lhs.m_elements[0] * rhs.m_elements[2],
+        lhs.m_elements[0] * rhs.m_elements[1] - lhs.m_elements[1] * rhs.m_elements[0]
+    );
 }
 
 }
-

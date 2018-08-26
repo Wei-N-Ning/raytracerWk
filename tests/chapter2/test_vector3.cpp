@@ -89,6 +89,22 @@ void test_istream() {
     vec3_equal(tmp, {44, 55 ,66});
 }
 
+void test_dot_product() {
+    using namespace RTWK;
+
+    assert(-14 == dot({-1, 2, -3}, {1, -2, 3}));
+}
+
+void test_cross_product() {
+    using namespace RTWK;
+
+    Vec3 result = cross({1, 0, 0}, {0, 1, 0});
+    vec3_equal({0, 0, 1}, result);
+
+    result = cross({0, 1, 0}, {1, 0, 0});
+    vec3_equal({0, 0, -1}, result);
+}
+
 int main(int argc, char **argv) {
     RunTinyTests();
     return 0;

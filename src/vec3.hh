@@ -12,8 +12,7 @@
 
 namespace RTWK {
 
-class Vec3 {
-public:
+struct Vec3 {
     Vec3();
 
     Vec3(float e0, float e1, float e2);
@@ -56,15 +55,22 @@ public:
 
     static Vec3 unit();
 
-    friend std::istream& operator>> (std::istream& is, Vec3& v);
-    friend std::ostream& operator<< (std::ostream& os, const Vec3& v);
-
-private:
     std::vector<float> m_elements;
 };
 
 std::istream& operator>> (std::istream& is, Vec3& v);
 std::ostream& operator<< (std::ostream& os, const Vec3& v);
+
+Vec3 operator+ (const Vec3& lhs, const Vec3& rhs);
+Vec3 operator* (const Vec3& lhs, const Vec3& rhs);
+Vec3 operator- (const Vec3& lhs, const Vec3& rhs);
+Vec3 operator/ (const Vec3& lhs, const Vec3& rhs);
+Vec3 operator* (float v, const Vec3& rhs);
+Vec3 operator* (const Vec3& lhs, float v);
+Vec3 operator/ (float v, const Vec3& rhs);
+
+float dot(const Vec3& lhs, const Vec3& rhs);
+Vec3 cross(const Vec3& lhs, const Vec3& rhs);
 
 }
 
