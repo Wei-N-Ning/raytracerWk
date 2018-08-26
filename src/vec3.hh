@@ -5,7 +5,8 @@
 #ifndef RAYTRACER_IN_A_WEEKEND_VEC3_HH
 #define RAYTRACER_IN_A_WEEKEND_VEC3_HH
 
-#include <sstream>
+#include <istream>
+#include <ostream>
 #include <vector>
 #include <cmath>
 
@@ -55,11 +56,15 @@ public:
 
     static Vec3 unit();
 
-    std::string str() const;
+    friend std::istream& operator>> (std::istream& is, Vec3& v);
+    friend std::ostream& operator<< (std::ostream& os, const Vec3& v);
 
 private:
     std::vector<float> m_elements;
 };
+
+std::istream& operator>> (std::istream& is, Vec3& v);
+std::ostream& operator<< (std::ostream& os, const Vec3& v);
 
 }
 

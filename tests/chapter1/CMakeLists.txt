@@ -1,5 +1,5 @@
 
-add_tinytest_executable(test_ppm test_ppm.cpp)
+add_executable(test_ppm test_ppm.cpp)
 set_target_properties(test_ppm
     PROPERTIES
     CXX_STANDARD 14)

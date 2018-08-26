@@ -113,12 +113,16 @@ Vec3 Vec3::unit() {
     return {1, 1, 1};
 }
 
-std::string Vec3::str() const {
-    std::stringstream ss;
-    ss << m_elements[0] << " "
-       << m_elements[1] << " "
-       << m_elements[2];
-    return ss.str();
+std::istream& operator>> (std::istream& is, Vec3& v) {
+    is >> v.m_elements[0] >> v.m_elements[1] >> v.m_elements[2];
+    return is;
+}
+
+std::ostream& operator<< (std::ostream& os, const Vec3& v) {
+    os << v.m_elements[0] << " "
+       << v.m_elements[1] << " "
+       << v.m_elements[2];
+   return os;
 }
 
 }

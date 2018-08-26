@@ -6,9 +6,7 @@
 
 #include <iostream>
 
-int main() {
-    using namespace RTWK;
-
-    createImage(std::cout, 128, 128);
+int main(int argc, char **argv) {
+    RTWK::createImage(std::cout, 128, 128);
     return 0;
 }
