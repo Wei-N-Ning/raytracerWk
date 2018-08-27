@@ -12,3 +12,17 @@ add_test(
     COMMAND
     test_surface_normal
 )
+
+add_executable(test_entity test_entity.cpp)
+set_target_properties(test_entity
+    PROPERTIES
+    CXX_STANDARD 14)
+target_link_libraries(test_entity
+    PUBLIC
+    rtwk)
+add_test(
+    NAME
+    "rtwk::chapter5::test-hitable-entity"
+    COMMAND
+    test_entity
+)

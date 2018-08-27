@@ -20,9 +20,13 @@ bool hitSphere(const RTWK::Ray& ray, const RTWK::Vec3& center, float radius) {
     using namespace RTWK;
 
     Vec3 centerToOrigin = ray.origin() - center;
+
     float a = dot(ray.direction(), ray.direction());
+
     float b = 2.0f * dot(centerToOrigin, ray.direction());
+
     float c = dot(centerToOrigin, centerToOrigin) - radius * radius;
+
     float discriminant = b * b - 4 * a * c;
     return discriminant > 0;
 }

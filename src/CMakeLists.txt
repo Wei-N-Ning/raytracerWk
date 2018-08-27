@@ -6,6 +6,8 @@ add_library(rtwk STATIC
     vec3.hh
     ray.cpp
     ray.hh
+    entities.cpp
+    entities.hh
 )
 target_include_directories(rtwk
     PUBLIC
