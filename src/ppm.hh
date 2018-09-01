@@ -7,6 +7,7 @@
 
 #include "ray.hh"
 #include "vec3.hh"
+#include "camera.hh"
 
 #include <ostream>
 
@@ -21,13 +22,21 @@ using RayFunction = Vec3 (Ray&);
 // The default sky-blue gradient background
 Vec3 backgroundColor(Ray& ray);
 
+// used in chapter 1 to test the image driver (ppm)
 void createTestImage(
     std::ostream &os,
     int xNumPixels, int yNumPixels);
 
+// used until chapter 6 to output image
 void createImage(
     std::ostream &os,
     int xNumPixels, int yNumPixels, RayFunction f);
+
+// used in chapter 6 to test camera and AA
+void createImageCamAA(
+    std::ostream &os,
+    int xNumPixels, int yNumPixels, int samplesPerPixel,
+    Camera& cam, RayFunction f);
 
 }
 
