@@ -8,6 +8,8 @@
 #include "ray.hh"
 #include "vec3.hh"
 
+#include <vector>
+
 namespace RTWK {
 
 struct HitRecord {
@@ -39,6 +41,32 @@ public:
 private:
     Vec3 m_center;
     float m_radius = 0;
+};
+
+// Like the example in the book, HitablaList does not own the Hitable
+// objects. It does not offer any means to free these resources.
+class HitableList : public Hitable {
+public:
+    HitableList() noexcept
+        : m_hitables() {
+    }
+
+    std::size_t size() const {
+        return m_hitables.size();
+    }
+
+    void add(Hitable* hitable) {
+        m_hitables.push_back(hitable);
+    }
+
+    bool hit(
+        const Ray& ray,
+        float t_min,
+        float t_max,
+        HitRecord& record) override;
+
+private:
+    std::vector<Hitable *> m_hitables;
 };
 
 }

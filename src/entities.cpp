@@ -46,4 +46,22 @@ bool Sphere::hit(
     return false;
 }
 
+bool HitableList::hit(const RTWK::Ray &ray,
+                      float t_min, float t_max,
+                      RTWK::HitRecord &record) {
+    RTWK::HitRecord tempRecord;
+    bool hitAnything = false;
+    float closestSoFar = t_max;
+
+    for (Hitable* hitable : m_hitables) {
+        if (hitable->hit(ray, t_min, closestSoFar, tempRecord)) {
+            hitAnything = true;
+            closestSoFar = tempRecord.t;
+            record = tempRecord;
+        }
+    }
+
+    return hitAnything;
+}
+
 }
