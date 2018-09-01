@@ -18,16 +18,16 @@ bool Sphere::hit(
 
     float a = dot(ray.direction(), ray.direction());
 
-    float b = dot(centerToOrigin, ray.direction());
+    float b = 2.0f * dot(centerToOrigin, ray.direction());
 
     float c = dot(centerToOrigin, centerToOrigin) - m_radius * m_radius;
 
-    float discriminant = b * b - a * c;
+    float discriminant = b * b - 4 * a * c;
     if (discriminant < 0) {
         return false;
     }
 
-    float t = -b - std::sqrt(discriminant) / a;
+    float t = (-b - std::sqrt(discriminant)) / (2.0f * a);
     if (t < t_max && t > t_min) {
         record.t = t;
         record.p = ray.pointAtParameter(record.t);
@@ -35,7 +35,7 @@ bool Sphere::hit(
         return true;
     }
 
-    t = -b + std::sqrt(discriminant) / a;
+    t = (-b + std::sqrt(discriminant)) / (2.0f * a);
     if (t < t_max && t > t_min) {
         record.t = t;
         record.p = ray.pointAtParameter(record.t);
