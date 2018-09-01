@@ -10,6 +10,11 @@
 #include <vector>
 #include <cassert>
 
+// RTWK P18
+// this yields a picture that is really just a visualization of where
+// the spheres are along with their surface normal.
+// this is often a great way to look at your model for flaws and
+// characteristics.
 
 RTWK::Vec3 surfaceColor(RTWK::Ray& ray) {
     static std::vector<RTWK::Sphere> store{

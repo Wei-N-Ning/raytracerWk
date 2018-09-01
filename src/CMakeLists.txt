@@ -8,6 +8,8 @@ add_library(rtwk STATIC
     ray.hh
     entities.cpp
     entities.hh
+    camera.cpp
+    camera.hh
 )
 target_include_directories(rtwk
     PUBLIC
