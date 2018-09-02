@@ -61,7 +61,10 @@ public:
 class Lambertian : public IMaterial {
 public:
     explicit Lambertian(Vec3 albedo)
-        : m_albedo(std::move(albedo)) {}
+        : m_albedo(std::move(albedo)) {
+
+    }
+
     bool scatter(
         const Ray& inRay,
         const HitRecord& record,
@@ -79,7 +82,15 @@ private:
 class Metal : public IMaterial {
 public:
     explicit Metal(Vec3 albedo)
-        : m_albedo(std::move(albedo)) {}
+        : m_albedo(std::move(albedo)) {
+
+    }
+
+    Metal(Vec3 albedo, float fuzziness)
+        : m_albedo(std::move(albedo)),
+          m_fuzziness(fuzziness) {
+
+    }
 
     bool scatter(
         const Ray& inRay,
@@ -90,6 +101,11 @@ public:
 
 private:
     Vec3 m_albedo;
+
+    // P28
+    // The bigger the sphere (m_fuzziness), the fuzzier the
+    // reflection will be
+    float m_fuzziness = 0;
 };
 
 }

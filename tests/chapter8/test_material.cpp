@@ -87,14 +87,14 @@ void lambert() {
 
     RTWK::createImageMaterial(
         ofs,
-        400, 200, 16,
+        200, 100, 32,
         camera, render,
         true);
 }
 
-void metal() {
+void metal(float fuzziness, const char* filename) {
     std::ofstream ofs;
-    ofs.open("/tmp/metal.ppm");
+    ofs.open(filename);
     assert(ofs.good());
     RTWK::Camera camera;
 
@@ -105,9 +105,9 @@ void metal() {
     render.m_materials["lambert.orange"] =
         new Lambertian({0.8f, 0.8f, 0});
     render.m_materials["metal.green"] =
-        new Metal({0.8f, 0.6f, 0.2f});
+        new Metal({0.8f, 0.6f, 0.2f}, fuzziness);
     render.m_materials["metal.lightgrey"] =
-        new Metal({0.8f, 0.8f, 0.8f});
+        new Metal({0.8f, 0.8f, 0.8f}, fuzziness);
 
     render.m_entities.push_back(new Sphere(
         Vec3(0, 0, -1), 0.5, render.m_materials.at("lambert.red")));
@@ -122,7 +122,7 @@ void metal() {
 
     RTWK::createImageMaterial(
         ofs,
-        400, 200, 16,
+        200, 100, 32,
         camera, render,
         true);
 }
@@ -130,7 +130,10 @@ void metal() {
 int main() {
     std::cout << "lambert test" << std::endl;
     lambert();
-    std::cout << "metal test" << std::endl;
-    metal();
+    std::cout << "metal test - fuzziness: 0" << std::endl;
+    metal(0, "/tmp/metal_f0.ppm");
+    std::cout << "metal test - fuzziness: 0.25" << std::endl;
+    metal(0.25f, "/tmp/metal_f025.ppm");
+
     return 0;
 }

@@ -62,7 +62,11 @@ bool Metal::scatter(
 
     Vec3 reflected = reflect(inRay.direction().normalized(),
         record.normal);
-    scattered = Ray(record.p, reflected);
+
+    scattered = Ray(
+        record.p,
+        reflected + m_fuzziness * randomInUnitSphere()
+        );
     attenuation = m_albedo;
 
     // only scattered if there is a right angle between incoming ray
