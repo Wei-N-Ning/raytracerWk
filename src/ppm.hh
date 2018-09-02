@@ -36,7 +36,8 @@ void createImage(
 void createImageCamAA(
     std::ostream &os,
     int xNumPixels, int yNumPixels, int samplesPerPixel,
-    Camera& cam, RayFunction f);
+    Camera& cam, RayFunction f,
+    bool gammaCorrection = false);
 
 }
 

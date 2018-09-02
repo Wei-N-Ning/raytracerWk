@@ -65,10 +65,22 @@ void createImage(
     }
 }
 
+// P23
+// almost all image viewers assume that the image is gamma-corrected,
+// meaning the 0 to 1 values have some transform before being stored
+// as a byte
+// there are many good reasons for that....
+// to a first approximation, we can use "gamma 2" which means raising
+// the color to the power 1/gamma, or 1/2, which is just square root
+void gammaCorrected(Vec3& col) {
+    col = Vec3(sqrt(col.r()), sqrt(col.g()), sqrt(col.b()));
+}
+
 void createImageCamAA(
     std::ostream &os,
     int xNumPixels, int yNumPixels, int samplesPerPixel,
-    Camera& cam, RayFunction rayFunction) {
+    Camera& cam, RayFunction rayFunction,
+    bool gammaCorrection) {
 
     os << "P3" << std::endl
        << xNumPixels << " " << yNumPixels << std::endl
@@ -87,7 +99,9 @@ void createImageCamAA(
                 outColor += rayFunction(r);
             }
             outColor /= float(samplesPerPixel);
-
+            if (gammaCorrection) {
+                gammaCorrected(outColor);
+            }
             int ir = int(255.99 * outColor.r());
             int ig = int(255.99 * outColor.g());
             int ib = int(255.99 * outColor.b());
