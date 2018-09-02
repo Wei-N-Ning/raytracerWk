@@ -100,7 +100,7 @@ int main() {
     RTWK::Camera camera;
     RTWK::createImageCamAA(
         ofs,
-        200, 100, 32,
+        200, 100, 8,
         camera, surfaceColor,
         true);
     return 0;

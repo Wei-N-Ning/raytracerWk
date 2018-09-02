@@ -57,7 +57,9 @@ bool HitableList::hit(const RTWK::Ray &ray,
         if (hitable->hit(ray, t_min, closestSoFar, tempRecord)) {
             hitAnything = true;
             closestSoFar = tempRecord.t;
-            record = tempRecord;
+            record.t = tempRecord.t;
+            record.p = tempRecord.normal;
+            record.p = tempRecord.p;
         }
     }
 

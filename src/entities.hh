@@ -12,10 +12,18 @@
 
 namespace RTWK {
 
+// P24
+// Hitable and Material needs to know each other so there is some
+// circularity of the references.
+// In C++ you just need to alert the compiler that the pointer to a
+// class "Material".
+class IMaterial;
+
 struct HitRecord {
     float t = 0;
     Vec3 p;
     Vec3 normal;
+    IMaterial* material = nullptr;
 };
 
 class Hitable {

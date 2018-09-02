@@ -10,6 +10,8 @@ add_library(rtwk STATIC
     entities.hh
     camera.cpp
     camera.hh
+    material.cpp
+    material.hh
 )
 target_include_directories(rtwk
     PUBLIC
