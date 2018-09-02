@@ -37,6 +37,8 @@ public:
         Vec3& attenuation,
         Ray& scattered
     ) const = 0;
+
+    virtual ~IMaterial() = default;
 };
 
 // P25

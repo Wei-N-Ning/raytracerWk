@@ -26,19 +26,24 @@ struct HitRecord {
     IMaterial* material = nullptr;
 };
 
-class Hitable {
+class IHitable {
 public:
     virtual bool hit(
         const Ray& ray,
         float t_min,
         float t_max,
         HitRecord& record) = 0;
+
+    virtual ~IHitable() = default;
 };
 
-class Sphere : public Hitable {
+class Sphere : public IHitable {
 public:
     Sphere() = default;
     Sphere(const Vec3& center, float radius);
+
+    // used in chapter 8, to support material
+    Sphere(const Vec3& center, float radius, IMaterial* material);
 
     bool hit(
         const Ray& ray,
@@ -49,21 +54,26 @@ public:
 private:
     Vec3 m_center;
     float m_radius = 0;
+    IMaterial* m_material = nullptr;
 };
 
 // Like the example in the book, HitablaList does not own the Hitable
 // objects. It does not offer any means to free these resources.
-class HitableList : public Hitable {
+class HitableList : public IHitable {
 public:
     HitableList() noexcept
         : m_hitables() {
+    }
+
+    explicit HitableList(bool supportMaterial) noexcept
+        : m_hitables(), m_supportMaterial(supportMaterial) {
     }
 
     std::size_t size() const {
         return m_hitables.size();
     }
 
-    void add(Hitable* hitable) {
+    void add(IHitable* hitable) {
         m_hitables.push_back(hitable);
     }
 
@@ -74,7 +84,8 @@ public:
         HitRecord& record) override;
 
 private:
-    std::vector<Hitable *> m_hitables;
+    std::vector<IHitable *> m_hitables;
+    bool m_supportMaterial = false;
 };
 
 }

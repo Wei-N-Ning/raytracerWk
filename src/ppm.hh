@@ -17,7 +17,18 @@ namespace RTWK {
 // reuse the base algorithm (iterating the pixels and writing out color)
 // while "plug in" the custom ray-to-color generator function in each
 // exercise
+// this is used prior to chapter 8, where the concept of material is
+// introduced
 using RayFunction = Vec3 (Ray&);
+
+// used in chapter 8 to enable material
+// also follow the book's example to use the hitable
+// "world" to encapsulate the render entities
+class IHitable;
+class IRender {
+public:
+    virtual Vec3 operator() (Ray& ray) = 0;
+};
 
 // The default sky-blue gradient background
 Vec3 backgroundColor(Ray& ray);
@@ -38,6 +49,13 @@ void createImageCamAA(
     int xNumPixels, int yNumPixels, int samplesPerPixel,
     Camera& cam, RayFunction f,
     bool gammaCorrection = false);
+
+// used in chapter 8 to support material
+void createImageMaterial(
+    std::ostream &os,
+    int xNumPixels, int yNumPixels, int samplesPerPixel,
+    Camera& cam, IRender& render,
+    bool gammaCorrection = true);
 
 }
 

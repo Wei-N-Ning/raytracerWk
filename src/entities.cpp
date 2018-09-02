@@ -7,7 +7,20 @@
 namespace RTWK {
 
 Sphere::Sphere(const RTWK::Vec3 &center, float radius)
-    : m_center(center), m_radius(radius) {}
+    : m_center(center), m_radius(radius) {
+
+}
+
+Sphere::Sphere(
+    const RTWK::Vec3 &center,
+    float radius,
+    RTWK::IMaterial *material)
+    : m_center(center),
+      m_radius(radius),
+      m_material(material) {
+
+}
+
 
 bool Sphere::hit(
     const RTWK::Ray &ray,
@@ -32,6 +45,7 @@ bool Sphere::hit(
         record.t = t;
         record.p = ray.pointAtParameter(record.t);
         record.normal = ((record.p - m_center) / m_radius).normalized();
+        record.material = m_material;
         return true;
     }
 
@@ -40,6 +54,7 @@ bool Sphere::hit(
         record.t = t;
         record.p = ray.pointAtParameter(record.t);
         record.normal = ((record.p - m_center) / m_radius).normalized();
+        record.material = m_material;
         return true;
     }
 
@@ -53,13 +68,17 @@ bool HitableList::hit(const RTWK::Ray &ray,
     bool hitAnything = false;
     float closestSoFar = t_max;
 
-    for (Hitable* hitable : m_hitables) {
+    for (IHitable* hitable : m_hitables) {
         if (hitable->hit(ray, t_min, closestSoFar, tempRecord)) {
             hitAnything = true;
             closestSoFar = tempRecord.t;
-            record.t = tempRecord.t;
-            record.p = tempRecord.normal;
-            record.p = tempRecord.p;
+            if (m_supportMaterial) {
+                record = tempRecord;
+            } else {
+                record.t = tempRecord.t;
+                record.normal = tempRecord.normal;
+                record.p = tempRecord.p;
+            }
         }
     }
 

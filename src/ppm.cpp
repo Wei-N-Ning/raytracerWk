@@ -109,6 +109,41 @@ void createImageCamAA(
             os << ir << " " << ig << " " << ib << std::endl;
         }
     }
-};
+}
+
+void createImageMaterial(
+    std::ostream &os,
+    int xNumPixels, int yNumPixels, int samplesPerPixel,
+    Camera& cam, IRender& render,
+    bool gammaCorrection) {
+
+    os << "P3" << std::endl
+       << xNumPixels << " " << yNumPixels << std::endl
+       << "255" << std::endl;
+    std::default_random_engine generator;
+    std::uniform_real_distribution<double> dist(0, 1);
+
+    for (int y = yNumPixels - 1; y >= 0; --y) {
+        for (int x = 0; x < xNumPixels; ++x) {
+            Vec3 outColor{0, 0, 0};
+
+            for (int sample = 0; sample < samplesPerPixel; ++sample) {
+                float u = float(x + dist(generator)) / float(xNumPixels);
+                float v = float(y + dist(generator)) / float(yNumPixels);
+                Ray r = cam.getRay(u, v);
+                outColor += render(r);
+            }
+            outColor /= float(samplesPerPixel);
+            if (gammaCorrection) {
+                gammaCorrected(outColor);
+            }
+            int ir = int(255.99 * outColor.r());
+            int ig = int(255.99 * outColor.g());
+            int ib = int(255.99 * outColor.b());
+
+            os << ir << " " << ig << " " << ib << std::endl;
+        }
+    }
+}
 
 }
