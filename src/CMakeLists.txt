@@ -12,6 +12,8 @@ add_library(rtwk STATIC
     camera.hh
     material.cpp
     material.hh
+    simpleRender.cpp
+    simpleRender.hh
 )
 target_include_directories(rtwk
     PUBLIC

@@ -2,9 +2,8 @@
 // Created by wein on 2/09/18.
 //
 
-#include <ppm.hh>
-#include <entities.hh>
 #include <material.hh>
+#include <simpleRender.hh>
 
 #include <limits>
 #include <fstream>
@@ -16,61 +15,15 @@
 #include <cassert>
 #include <cstdlib>
 
-constexpr float maxFloat = std::numeric_limits<float>::max();
-
-class SimpleRender : public RTWK::IRender {
-public:
-    ~SimpleRender();
-    RTWK::Vec3 operator() (RTWK::Ray& ray) override;
-    void updateWorld() {
-        m_world = new RTWK::HitableList(true);
-        for (auto& ptr : m_entities) {
-            m_world->add(ptr);
-        }
-    }
-
-    RTWK::HitableList* m_world = nullptr;
-    std::map<std::string, RTWK::IMaterial *> m_materials;
-    std::vector<RTWK::IHitable *> m_entities;
-};
-
-RTWK::Vec3 SimpleRender::operator()(RTWK::Ray &ray) {
+void lambert() {
     using namespace RTWK;
 
-    HitRecord hitRecord;
-    if (m_world->hit(ray, 0.00001f, maxFloat, hitRecord) > 0) {
-        Ray scattered;
-        Vec3 attenuation;
-        if (hitRecord.material->scatter(
-            ray, hitRecord, attenuation, scattered
-        )) {
-            return attenuation * (*this)(scattered);
-        }
-        else {
-            return {0, 0, 0};
-        }
-    }
-    return backgroundColor(ray);
-}
-
-SimpleRender::~SimpleRender() {
-    for (auto& pair : m_materials) {
-        delete pair.second;
-    }
-    for (auto& ptr : m_entities) {
-        delete ptr;
-    }
-    delete m_world;
-}
-
-void lambert() {
     std::ofstream ofs;
     ofs.open("/tmp/lambert.ppm");
     assert(ofs.good());
     RTWK::Camera camera;
 
-    SimpleRender render;
-    using namespace RTWK;
+    RTWK::SimpleRender render;
     render.m_materials["lambert.grey"] =
         new Lambertian({0.5f, 0.5f, 0.5f});
 
@@ -93,13 +46,14 @@ void lambert() {
 }
 
 void metal(float fuzziness, const char* filename) {
+    using namespace RTWK;
+
     std::ofstream ofs;
     ofs.open(filename);
     assert(ofs.good());
     RTWK::Camera camera;
 
     SimpleRender render;
-    using namespace RTWK;
     render.m_materials["lambert.red"] =
         new Lambertian({0.8f, 0.3f, 0.3f});
     render.m_materials["lambert.orange"] =

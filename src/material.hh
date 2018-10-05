@@ -108,6 +108,27 @@ private:
     float m_fuzziness = 0;
 };
 
+// P31
+//
+class Dielectric : public IMaterial {
+public:
+    explicit Dielectric(float i_ri)
+        : ref_idx(i_ri) {
+        ;
+    }
+
+    bool scatter(
+        const Ray& inRay,
+        const HitRecord& record,
+        Vec3& attenuation,
+        Ray& scattered
+        ) const override;
+
+private:
+    float ref_idx;
+};
+
+
 }
 
 #endif //RAYTRACER_IN_A_WEEKEND_MATERIAL_HH

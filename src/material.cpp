@@ -74,4 +74,82 @@ bool Metal::scatter(
     return (dot(scattered.direction(), record.normal) > 0);
 }
 
+// P30
+// also see paper:
+// 2006-greve-reflection-and-refraction
+bool refract(const Vec3 &i_v, const Vec3 &i_n, float i_ni_over_nt,
+             Vec3 &o_refracted) {
+    Vec3 uv = i_v.normalized();
+
+    // the example in his book does not normalize the normal
+    Vec3 un = i_n.normalized();
+
+    // theta
+    float dt = dot(uv, un);
+    float discriminant = \
+        1.0f - i_ni_over_nt * i_ni_over_nt * (1.0f - dt * dt);
+    if (discriminant > 0.0f) {
+        o_refracted = \
+            i_ni_over_nt * (uv - un * dt) - un * sqrt(discriminant);
+        return true;
+    }
+    return false;
+}
+
+// P32
+float schlick(float cosine, float ref_idx) {
+    float r0 = (1 - ref_idx) / (1 + ref_idx);
+    r0 = r0 * r0;
+    return r0 + (1 - r0) * pow((1 - cosine), 5);
+}
+
+// P31
+// dielectric material always refracts when possible
+// attenuation is always 1: the glass surface absorbs nothing
+// attenuation = Vec3(1.0, 1.0, 0.0) will also kill the blue channel,
+// which is the type of color bug that can be hard to find
+
+bool Dielectric::scatter(const Ray &inRay,
+                         const HitRecord &record,
+                         Vec3 &attenuation,
+                         Ray &scattered) const {
+    Vec3 outward_normal;
+    Vec3 reflected = reflect(
+        inRay.direction(), record.normal);
+    float ni_over_nt;
+    attenuation = Vec3(1.0, 1.0, 1.0);
+    Vec3 refracted;
+    float reflect_prob;
+    float cosine;
+
+    if (dot(inRay.direction(), record.normal) > 0) {
+        outward_normal = -record.normal;
+        ni_over_nt = ref_idx;
+        cosine = ref_idx * dot(inRay.direction(),
+            record.normal) / inRay.direction().length();
+
+    } else {
+        outward_normal = record.normal;
+        ni_over_nt = 1.0f / ref_idx;
+        cosine = -dot(inRay.direction(), record.normal) /
+            inRay.direction().length();
+    }
+
+    if (refract(inRay.direction(), outward_normal,
+        ni_over_nt, refracted)) {
+        reflect_prob = schlick(cosine, ref_idx);
+    } else {
+        scattered = Ray(record.p, reflected);
+        reflect_prob = 1.0f;
+    }
+
+    if (drand48() < reflect_prob) {
+        scattered = Ray(record.p, reflected);
+    } else {
+        scattered = Ray(record.p, refracted);
+    }
+
+    return true;
+}
+
 }
