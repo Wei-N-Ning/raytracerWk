@@ -11,5 +11,5 @@ target_link_libraries(test_dielectrics
     rtwk)
 
 add_test(NAME
-    "rtwk::chapter8::test-dielectrics"
+    "rtwk::chapter9::test-dielectrics"
     COMMAND test_dielectrics)

@@ -9,6 +9,15 @@
 
 namespace RTWK {
 
+// P33
+// an adjustable field of view (fov)
+// this is the angle you see through the portal
+// since our image is not square, the fov is
+// different horizontally and vertically
+
+// the author's preference:
+// "I always use vertical fov. I also usually specify
+// it in degrees and change to radians inside a ctor"
 class Camera {
 public:
     Camera()
@@ -18,10 +27,16 @@ public:
           m_vertical({0, 2.0f, 0}) {
     }
 
+    Camera(float i_vfov, float i_aspect);
+
     Ray getRay(float u, float v) {
-        return Ray(m_origin,
+        return Ray(
+            m_origin,
+
             m_lowerLeftCorner +
-            u * m_horizontal + v * m_vertical - m_origin
+            u * m_horizontal +
+            v * m_vertical -
+            m_origin
         );
     }
 
