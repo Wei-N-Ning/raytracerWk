@@ -54,7 +54,7 @@ public:
     Camera(Vec3 i_look_from, Vec3 i_look_at, Vec3 i_vup,
            float i_vfov, float i_aspect);
 
-    Ray getRay(float u, float v) {
+    virtual Ray getRay(float u, float v) {
         return Ray(
             m_origin,
 
@@ -65,11 +65,39 @@ public:
         );
     }
 
-private:
+protected:
     Vec3 m_origin;
     Vec3 m_lowerLeftCorner;
     Vec3 m_horizontal;
     Vec3 m_vertical;
+};
+
+// P38
+// (on depth of field)
+// we also don't need to simulate any of the inside
+// of the camera.... instead I usually start rays
+// from the surface of the lens, and send them toward
+// a virtual film plane, by finding the projection
+// of the film on the plane that is in focus ( at
+// the distance focus_dist )
+// for that we just need to have the ray origins be
+// on a disk around look-from rather than from a
+// point
+
+class DepthCamera : public Camera {
+public:
+    DepthCamera(Vec3 i_look_from, Vec3 i_look_at, Vec3 i_vup,
+                float i_vfov, float i_aspect,
+                float i_aperture, float i_focus_dist);
+
+    Ray getRay(float s, float t) override;
+
+private:
+    Vec3 m_u;
+    Vec3 m_v;
+    Vec3 m_w;
+
+    float m_lensRadius;
 };
 
 }
