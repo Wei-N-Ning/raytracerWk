@@ -18,6 +18,28 @@ namespace RTWK {
 // the author's preference:
 // "I always use vertical fov. I also usually specify
 // it in degrees and change to radians inside a ctor"
+
+// P34
+// the get an arbitrary viewpoint.... we need a way to
+// specify the roll, or sideways tilt, of the camera;
+// the rotation around the look-at-look-from axis
+// another way to think about it is even if you keep
+// look-from and look-at constant, you can still
+// rotate your head around your nose
+// what we need is a way to specify an up vector for
+// the camera
+// notice we already have a plane what the up vector
+// should be in, the plane orthogonal to the view
+// direction
+
+// use the common convention of naming a "view up"
+// (vup) vector
+// vup, v and w are all in the same plane
+// like before when our fixed camera faced -Z, our
+// arbitrary view camera faces -w
+// we can - but we don't have to - use world up (0, 1, 1)
+// to specify vup,
+
 class Camera {
 public:
     Camera()
@@ -28,6 +50,9 @@ public:
     }
 
     Camera(float i_vfov, float i_aspect);
+
+    Camera(Vec3 i_look_from, Vec3 i_look_at, Vec3 i_vup,
+           float i_vfov, float i_aspect);
 
     Ray getRay(float u, float v) {
         return Ray(
