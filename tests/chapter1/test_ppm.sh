@@ -5,12 +5,12 @@ set -e
 TEMPDIR=/tmp/sut
 
 tearDown() {
-    rm -rf ${TEMPDIR} /tmp/_ /tmp/_.* /tmp/__*
+  rm -rf ${TEMPDIR} /tmp/_ /tmp/_.* /tmp/__*
 }
 
 setUp() {
-    tearDown
-    mkdir -p ${TEMPDIR}
+  tearDown
+  mkdir -p ${TEMPDIR}
 }
 
 sutbin=${1:?missing program}

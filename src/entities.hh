@@ -10,8 +10,8 @@
 
 #include <vector>
 
-namespace RTWK {
-
+namespace RTWK
+{
 // P24
 // Hitable and Material needs to know each other so there is some
 // circularity of the references.
@@ -19,37 +19,32 @@ namespace RTWK {
 // class "Material".
 class IMaterial;
 
-struct HitRecord {
+struct HitRecord
+{
     float t = 0;
     Vec3 p;
     Vec3 normal;
     IMaterial* material = nullptr;
 };
 
-class IHitable {
+class IHitable
+{
 public:
-    virtual bool hit(
-        const Ray& ray,
-        float t_min,
-        float t_max,
-        HitRecord& record) = 0;
+    virtual bool hit( const Ray& ray, float t_min, float t_max, HitRecord& record ) = 0;
 
     virtual ~IHitable() = default;
 };
 
-class Sphere : public IHitable {
+class Sphere : public IHitable
+{
 public:
     Sphere() = default;
-    Sphere(const Vec3& center, float radius);
+    Sphere( const Vec3& center, float radius );
 
     // used in chapter 8, to support material
-    Sphere(const Vec3& center, float radius, IMaterial* material);
+    Sphere( const Vec3& center, float radius, IMaterial* material );
 
-    bool hit(
-        const Ray& ray,
-        float t_min,
-        float t_max,
-        HitRecord& record) override;
+    bool hit( const Ray& ray, float t_min, float t_max, HitRecord& record ) override;
 
 private:
     Vec3 m_center;
@@ -59,35 +54,35 @@ private:
 
 // Like the example in the book, HitablaList does not own the Hitable
 // objects. It does not offer any means to free these resources.
-class HitableList : public IHitable {
+class HitableList : public IHitable
+{
 public:
-    HitableList() noexcept
-        : m_hitables() {
+    HitableList() noexcept : m_hitables()
+    {
     }
 
-    explicit HitableList(bool supportMaterial) noexcept
-        : m_hitables(), m_supportMaterial(supportMaterial) {
+    explicit HitableList( bool supportMaterial ) noexcept
+        : m_hitables(), m_supportMaterial( supportMaterial )
+    {
     }
 
-    std::size_t size() const {
+    std::size_t size() const
+    {
         return m_hitables.size();
     }
 
-    void add(IHitable* hitable) {
-        m_hitables.push_back(hitable);
+    void add( IHitable* hitable )
+    {
+        m_hitables.push_back( hitable );
     }
 
-    bool hit(
-        const Ray& ray,
-        float t_min,
-        float t_max,
-        HitRecord& record) override;
+    bool hit( const Ray& ray, float t_min, float t_max, HitRecord& record ) override;
 
 private:
-    std::vector<IHitable *> m_hitables;
+    std::vector< IHitable* > m_hitables;
     bool m_supportMaterial = false;
 };
 
-}
+}  // namespace RTWK
 
-#endif //RAYTRACER_IN_A_WEEKEND_ENTITIES_HH
+#endif  // RAYTRACER_IN_A_WEEKEND_ENTITIES_HH

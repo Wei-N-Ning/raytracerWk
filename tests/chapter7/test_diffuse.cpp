@@ -32,7 +32,8 @@
 // pick a random points from the unit radius sphere that is tangent to
 // the hitpoint, and send a ray from the hitpoint p to the random point
 // s. That sphere has center (p + N)
-RTWK::Vec3 randomInUnitSphere() {
+RTWK::Vec3 randomInUnitSphere()
+{
     RTWK::Vec3 p;
 
     // P22
@@ -42,30 +43,31 @@ RTWK::Vec3 randomInUnitSphere() {
     // we reject this point and try again if the point is outside the
     // sphere
     static std::default_random_engine gen;
-    static std::uniform_real_distribution<float> dist(0, 1);
-    do {
+    static std::uniform_real_distribution< float > dist( 0, 1 );
+    do
+    {
         // this could also work:
         // 2.0f * RTWK::Vec3(drand48(), drand48(), drand48())
         // and produces similar result
-        RTWK::Vec3 s = 2.0f * RTWK::Vec3(dist(gen), dist(gen), dist(gen));
-        p = s - RTWK::Vec3(1, 1, 1);
-    } while (p.sqr_length() >= 1.0f);
+        RTWK::Vec3 s = 2.0f * RTWK::Vec3( dist( gen ), dist( gen ), dist( gen ) );
+        p = s - RTWK::Vec3( 1, 1, 1 );
+    } while ( p.sqr_length() >= 1.0f );
 
     return p;
 }
 
-constexpr float minFloat = std::numeric_limits<float>::min();
-constexpr float maxFloat = std::numeric_limits<float>::max();
+constexpr float minFloat = std::numeric_limits< float >::min();
+constexpr float maxFloat = std::numeric_limits< float >::max();
 
-RTWK::Vec3 surfaceColor(RTWK::Ray& ray) {
-    static std::vector<RTWK::Sphere> store{
-        RTWK::Sphere(RTWK::Vec3{0, 0, -1}, 0.5),
-        RTWK::Sphere(RTWK::Vec3{0, -100.5f, -1}, 100)
-    };
+RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
+{
+    static std::vector< RTWK::Sphere > store{
+        RTWK::Sphere( RTWK::Vec3{ 0, 0, -1 }, 0.5 ),
+        RTWK::Sphere( RTWK::Vec3{ 0, -100.5f, -1 }, 100 ) };
 
     RTWK::HitableList spheres;
-    spheres.add(&(store[0]));
-    spheres.add(&(store[1]));
+    spheres.add( &( store[ 0 ] ) );
+    spheres.add( &( store[ 1 ] ) );
 
     using namespace RTWK;
     RTWK::HitRecord hitRecord;
@@ -76,32 +78,29 @@ RTWK::Vec3 surfaceColor(RTWK::Ray& ray) {
     // off of not at exactly t = 0, but instead at t = +/-0.00000001
     // so we need to ignore this very near zero
     // this gets rid of the ////shadow acne//// problem
-    if (spheres.hit(ray, 0.00001f, maxFloat, hitRecord) > 0) {
-        Vec3 target =
-            hitRecord.p + hitRecord.normal + randomInUnitSphere();
+    if ( spheres.hit( ray, 0.00001f, maxFloat, hitRecord ) > 0 )
+    {
+        Vec3 target = hitRecord.p + hitRecord.normal + randomInUnitSphere();
 
         // send a ray from the hitpoint p to the random point s......
-        Ray newRay = RTWK::Ray(hitRecord.p, target - hitRecord.p);
+        Ray newRay = RTWK::Ray( hitRecord.p, target - hitRecord.p );
         // and see if it hits another surface
-        Vec3 newColor = surfaceColor(newRay);
+        Vec3 newColor = surfaceColor( newRay );
 
         // P23
         // our spheres only absorb half the energy on each bounce, so
         // they are 50% reflectors
         return 0.5f * newColor;
     }
-    return backgroundColor(ray);
+    return backgroundColor( ray );
 }
 
-int main() {
+int main()
+{
     std::ofstream ofs;
-    ofs.open("/tmp/diffuse.ppm");
-    assert(ofs.good());
+    ofs.open( "/tmp/diffuse.ppm" );
+    assert( ofs.good() );
     RTWK::Camera camera;
-    RTWK::createImageCamAA(
-        ofs,
-        200, 100, 8,
-        camera, surfaceColor,
-        true);
+    RTWK::createImageCamAA( ofs, 200, 100, 8, camera, surfaceColor, true );
     return 0;
 }

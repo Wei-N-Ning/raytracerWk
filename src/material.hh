@@ -17,8 +17,8 @@
 #include "ray.hh"
 #include "entities.hh"
 
-namespace RTWK {
-
+namespace RTWK
+{
 // P25
 // "material will tell us how rays interact with the surface.
 // when ray hits a surface (a particular sphere for example), the
@@ -29,14 +29,13 @@ namespace RTWK {
 // functions of the material pointer to find out what ray, if any, is
 // scattered."
 
-class IMaterial {
+class IMaterial
+{
 public:
-    virtual bool scatter(
-        const Ray& inRay,
-        const HitRecord& record,
-        Vec3& attenuation,
-        Ray& scattered
-    ) const = 0;
+    virtual bool scatter( const Ray& inRay,
+                          const HitRecord& record,
+                          Vec3& attenuation,
+                          Ray& scattered ) const = 0;
 
     virtual ~IMaterial() = default;
 };
@@ -54,23 +53,21 @@ public:
 // (downloaded on gunship)
 
 // albedo:
-// is the measure of the diffuse reflection of solar radiation out of the total solar radiation received by an
-// astronomical body (e.g. a planet like Earth).
+// is the measure of the diffuse reflection of solar radiation out of the total solar
+// radiation received by an astronomical body (e.g. a planet like Earth).
 // https://en.wikipedia.org/wiki/Albedo
 
-class Lambertian : public IMaterial {
+class Lambertian : public IMaterial
+{
 public:
-    explicit Lambertian(Vec3 albedo)
-        : m_albedo(std::move(albedo)) {
-
+    explicit Lambertian( Vec3 albedo ) : m_albedo( std::move( albedo ) )
+    {
     }
 
-    bool scatter(
-        const Ray& inRay,
-        const HitRecord& record,
-        Vec3& attenuation,
-        Ray& scattered
-    ) const override;
+    bool scatter( const Ray& inRay,
+                  const HitRecord& record,
+                  Vec3& attenuation,
+                  Ray& scattered ) const override;
 
 private:
     Vec3 m_albedo;
@@ -79,25 +76,22 @@ private:
 // P25
 // For smooth metals the ray won't be randomly scattered.
 // the key math is: how does a ray get reflected from a metal mirror?
-class Metal : public IMaterial {
+class Metal : public IMaterial
+{
 public:
-    explicit Metal(Vec3 albedo)
-        : m_albedo(std::move(albedo)) {
-
+    explicit Metal( Vec3 albedo ) : m_albedo( std::move( albedo ) )
+    {
     }
 
-    Metal(Vec3 albedo, float fuzziness)
-        : m_albedo(std::move(albedo)),
-          m_fuzziness(fuzziness) {
-
+    Metal( Vec3 albedo, float fuzziness )
+        : m_albedo( std::move( albedo ) ), m_fuzziness( fuzziness )
+    {
     }
 
-    bool scatter(
-        const Ray& inRay,
-        const HitRecord& record,
-        Vec3& attenuation,
-        Ray& scattered
-    ) const override;
+    bool scatter( const Ray& inRay,
+                  const HitRecord& record,
+                  Vec3& attenuation,
+                  Ray& scattered ) const override;
 
 private:
     Vec3 m_albedo;
@@ -110,25 +104,23 @@ private:
 
 // P31
 //
-class Dielectric : public IMaterial {
+class Dielectric : public IMaterial
+{
 public:
-    explicit Dielectric(float i_ri)
-        : ref_idx(i_ri) {
+    explicit Dielectric( float i_ri ) : ref_idx( i_ri )
+    {
         ;
     }
 
-    bool scatter(
-        const Ray& inRay,
-        const HitRecord& record,
-        Vec3& attenuation,
-        Ray& scattered
-        ) const override;
+    bool scatter( const Ray& inRay,
+                  const HitRecord& record,
+                  Vec3& attenuation,
+                  Ray& scattered ) const override;
 
 private:
     float ref_idx;
 };
 
+}  // namespace RTWK
 
-}
-
-#endif //RAYTRACER_IN_A_WEEKEND_MATERIAL_HH
+#endif  // RAYTRACER_IN_A_WEEKEND_MATERIAL_HH

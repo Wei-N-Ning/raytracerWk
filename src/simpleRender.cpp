@@ -7,37 +7,42 @@
 
 #include <limits>
 
-namespace RTWK {
+namespace RTWK
+{
+constexpr float maxFloat = std::numeric_limits< float >::max();
 
-constexpr float maxFloat = std::numeric_limits<float>::max();
-
-RTWK::Vec3 SimpleRender::operator()(RTWK::Ray &ray) {
+RTWK::Vec3 SimpleRender::operator()( RTWK::Ray& ray )
+{
     using namespace RTWK;
 
     HitRecord hitRecord;
-    if (m_world->hit(ray, 0.00001f, maxFloat, hitRecord) > 0) {
+    if ( m_world->hit( ray, 0.00001f, maxFloat, hitRecord ) > 0 )
+    {
         Ray scattered;
         Vec3 attenuation;
-        if (hitRecord.material->scatter(
-            ray, hitRecord, attenuation, scattered
-        )) {
-            return attenuation * (*this)(scattered);
+        if ( hitRecord.material->scatter( ray, hitRecord, attenuation, scattered ) )
+        {
+            return attenuation * ( *this )( scattered );
         }
-        else {
-            return {0, 0, 0};
+        else
+        {
+            return { 0, 0, 0 };
         }
     }
-    return backgroundColor(ray);
+    return backgroundColor( ray );
 }
 
-SimpleRender::~SimpleRender() {
-    for (auto& pair : m_materials) {
+SimpleRender::~SimpleRender()
+{
+    for ( auto& pair : m_materials )
+    {
         delete pair.second;
     }
-    for (auto& ptr : m_entities) {
+    for ( auto& ptr : m_entities )
+    {
         delete ptr;
     }
     delete m_world;
 }
 
-}
+}  // namespace RTWK

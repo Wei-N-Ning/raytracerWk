@@ -4,56 +4,50 @@
 
 #include "entities.hh"
 
-namespace RTWK {
-
-Sphere::Sphere(const RTWK::Vec3 &center, float radius)
-    : m_center(center), m_radius(radius) {
-
+namespace RTWK
+{
+Sphere::Sphere( const RTWK::Vec3 &center, float radius )
+    : m_center( center ), m_radius( radius )
+{
 }
 
-Sphere::Sphere(
-    const RTWK::Vec3 &center,
-    float radius,
-    RTWK::IMaterial *material)
-    : m_center(center),
-      m_radius(radius),
-      m_material(material) {
-
+Sphere::Sphere( const RTWK::Vec3 &center, float radius, RTWK::IMaterial *material )
+    : m_center( center ), m_radius( radius ), m_material( material )
+{
 }
 
-
-bool Sphere::hit(
-    const RTWK::Ray &ray,
-    float t_min,
-    float t_max,
-    HitRecord &record) {
+bool Sphere::hit( const RTWK::Ray &ray, float t_min, float t_max, HitRecord &record )
+{
     Vec3 centerToOrigin = ray.origin() - m_center;
 
-    float a = dot(ray.direction(), ray.direction());
+    float a = dot( ray.direction(), ray.direction() );
 
-    float b = 2.0f * dot(centerToOrigin, ray.direction());
+    float b = 2.0f * dot( centerToOrigin, ray.direction() );
 
-    float c = dot(centerToOrigin, centerToOrigin) - m_radius * m_radius;
+    float c = dot( centerToOrigin, centerToOrigin ) - m_radius * m_radius;
 
     float discriminant = b * b - 4 * a * c;
-    if (discriminant < 0) {
+    if ( discriminant < 0 )
+    {
         return false;
     }
 
-    float t = (-b - std::sqrt(discriminant)) / (2.0f * a);
-    if (t < t_max && t > t_min) {
+    float t = ( -b - std::sqrt( discriminant ) ) / ( 2.0f * a );
+    if ( t < t_max && t > t_min )
+    {
         record.t = t;
-        record.p = ray.pointAtParameter(record.t);
-        record.normal = ((record.p - m_center) / m_radius).normalized();
+        record.p = ray.pointAtParameter( record.t );
+        record.normal = ( ( record.p - m_center ) / m_radius ).normalized();
         record.material = m_material;
         return true;
     }
 
-    t = (-b + std::sqrt(discriminant)) / (2.0f * a);
-    if (t < t_max && t > t_min) {
+    t = ( -b + std::sqrt( discriminant ) ) / ( 2.0f * a );
+    if ( t < t_max && t > t_min )
+    {
         record.t = t;
-        record.p = ray.pointAtParameter(record.t);
-        record.normal = ((record.p - m_center) / m_radius).normalized();
+        record.p = ray.pointAtParameter( record.t );
+        record.normal = ( ( record.p - m_center ) / m_radius ).normalized();
         record.material = m_material;
         return true;
     }
@@ -61,20 +55,27 @@ bool Sphere::hit(
     return false;
 }
 
-bool HitableList::hit(const RTWK::Ray &ray,
-                      float t_min, float t_max,
-                      RTWK::HitRecord &record) {
+bool HitableList::hit( const RTWK::Ray &ray,
+                       float t_min,
+                       float t_max,
+                       RTWK::HitRecord &record )
+{
     RTWK::HitRecord tempRecord;
     bool hitAnything = false;
     float closestSoFar = t_max;
 
-    for (IHitable* hitable : m_hitables) {
-        if (hitable->hit(ray, t_min, closestSoFar, tempRecord)) {
+    for ( IHitable *hitable : m_hitables )
+    {
+        if ( hitable->hit( ray, t_min, closestSoFar, tempRecord ) )
+        {
             hitAnything = true;
             closestSoFar = tempRecord.t;
-            if (m_supportMaterial) {
+            if ( m_supportMaterial )
+            {
                 record = tempRecord;
-            } else {
+            }
+            else
+            {
                 record.t = tempRecord.t;
                 record.normal = tempRecord.normal;
                 record.p = tempRecord.p;
@@ -85,4 +86,4 @@ bool HitableList::hit(const RTWK::Ray &ray,
     return hitAnything;
 }
 
-}
+}  // namespace RTWK

@@ -7,8 +7,8 @@
 
 #include "ray.hh"
 
-namespace RTWK {
-
+namespace RTWK
+{
 // P33
 // an adjustable field of view (fov)
 // this is the angle you see through the portal
@@ -40,29 +40,26 @@ namespace RTWK {
 // we can - but we don't have to - use world up (0, 1, 1)
 // to specify vup,
 
-class Camera {
+class Camera
+{
 public:
     Camera()
-        : m_origin({0, 0, 0}),
-          m_lowerLeftCorner({-2.0f, -1.0f, -1.0f}),
-          m_horizontal({4.0f, 0, 0}),
-          m_vertical({0, 2.0f, 0}) {
+        : m_origin( { 0, 0, 0 } )
+        , m_lowerLeftCorner( { -2.0f, -1.0f, -1.0f } )
+        , m_horizontal( { 4.0f, 0, 0 } )
+        , m_vertical( { 0, 2.0f, 0 } )
+    {
     }
 
-    Camera(float i_vfov, float i_aspect);
+    Camera( float i_vfov, float i_aspect );
 
-    Camera(Vec3 i_look_from, Vec3 i_look_at, Vec3 i_vup,
-           float i_vfov, float i_aspect);
+    Camera( Vec3 i_look_from, Vec3 i_look_at, Vec3 i_vup, float i_vfov, float i_aspect );
 
-    virtual Ray getRay(float u, float v) {
-        return Ray(
-            m_origin,
+    virtual Ray getRay( float u, float v )
+    {
+        return Ray( m_origin,
 
-            m_lowerLeftCorner +
-            u * m_horizontal +
-            v * m_vertical -
-            m_origin
-        );
+                    m_lowerLeftCorner + u * m_horizontal + v * m_vertical - m_origin );
     }
 
 protected:
@@ -84,13 +81,18 @@ protected:
 // on a disk around look-from rather than from a
 // point
 
-class DepthCamera : public Camera {
+class DepthCamera : public Camera
+{
 public:
-    DepthCamera(Vec3 i_look_from, Vec3 i_look_at, Vec3 i_vup,
-                float i_vfov, float i_aspect,
-                float i_aperture, float i_focus_dist);
+    DepthCamera( Vec3 i_look_from,
+                 Vec3 i_look_at,
+                 Vec3 i_vup,
+                 float i_vfov,
+                 float i_aspect,
+                 float i_aperture,
+                 float i_focus_dist );
 
-    Ray getRay(float s, float t) override;
+    Ray getRay( float s, float t ) override;
 
 private:
     Vec3 m_u;
@@ -100,6 +102,6 @@ private:
     float m_lensRadius;
 };
 
-}
+}  // namespace RTWK
 
-#endif //RAYTRACER_IN_A_WEEKEND_CAMERA_HH
+#endif  // RAYTRACER_IN_A_WEEKEND_CAMERA_HH

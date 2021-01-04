@@ -14,7 +14,7 @@ add_library(rtwk STATIC
     material.hh
     simpleRender.cpp
     simpleRender.hh
-)
+    )
 target_include_directories(rtwk
     PUBLIC
     .)

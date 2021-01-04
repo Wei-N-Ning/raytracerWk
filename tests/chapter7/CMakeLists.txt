@@ -6,7 +6,7 @@ set_target_properties(test_diffuse
 target_link_libraries(test_diffuse
     PUBLIC
     rtwk
-)
+    )
 add_test(
     NAME
     "rtwk::chapter7::diffuse-materials"

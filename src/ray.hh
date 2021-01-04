@@ -7,8 +7,8 @@
 
 #include "vec3.hh"
 
-namespace RTWK {
-
+namespace RTWK
+{
 //! P8
 //! p(t) = A + tB
 //! point at parameter, t
@@ -27,23 +27,24 @@ namespace RTWK {
 //! "I've often gotten into trouble using square images for debugging
 //! because I transpose x and y too often, so I will stick with 200x100
 //! image"
-class Ray {
+class Ray
+{
 public:
     Ray() = default;
-    Ray(const Vec3& A, const Vec3& B);
+    Ray( const Vec3& A, const Vec3& B );
 
     //! A
-    const Vec3& origin () const;
+    const Vec3& origin() const;
     //! B
-    const Vec3& direction () const;
+    const Vec3& direction() const;
     //! A + tB
-    Vec3 pointAtParameter(float t) const;
+    Vec3 pointAtParameter( float t ) const;
 
 private:
     Vec3 m_A;
     Vec3 m_B;
 };
 
-}
+}  // namespace RTWK
 
-#endif //RAYTRACER_IN_A_WEEKEND_RAY_HH
+#endif  // RAYTRACER_IN_A_WEEKEND_RAY_HH

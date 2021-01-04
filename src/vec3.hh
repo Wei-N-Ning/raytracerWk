@@ -10,12 +10,13 @@
 #include <vector>
 #include <cmath>
 
-namespace RTWK {
-
-struct Vec3 {
+namespace RTWK
+{
+struct Vec3
+{
     Vec3();
 
-    Vec3(float e0, float e1, float e2);
+    Vec3( float e0, float e1, float e2 );
 
     float x() const;
 
@@ -29,25 +30,25 @@ struct Vec3 {
 
     float b() const;
 
-    const Vec3 &operator+() const;
+    const Vec3& operator+() const;
 
     Vec3 operator-() const;
 
-    float operator[](int i) const;
+    float operator[]( int i ) const;
 
-    float &operator[](int i);
+    float& operator[]( int i );
 
-    Vec3 &operator+=(const Vec3 &other);
+    Vec3& operator+=( const Vec3& other );
 
-    Vec3 &operator-=(const Vec3 &other);
+    Vec3& operator-=( const Vec3& other );
 
-    Vec3 &operator*=(const Vec3 &other);
+    Vec3& operator*=( const Vec3& other );
 
-    Vec3 &operator*=(float v);
+    Vec3& operator*=( float v );
 
-    Vec3 &operator/=(const Vec3 &other);
+    Vec3& operator/=( const Vec3& other );
 
-    Vec3 &operator/=(float v);
+    Vec3& operator/=( float v );
 
     float length() const;
 
@@ -56,25 +57,25 @@ struct Vec3 {
     static Vec3 unit();
     Vec3 normalized() const;
 
-    std::vector<float> m_elements;
+    std::vector< float > m_elements;
 };
 
-std::istream& operator>> (std::istream& is, Vec3& v);
-std::ostream& operator<< (std::ostream& os, const Vec3& v);
+std::istream& operator>>( std::istream& is, Vec3& v );
+std::ostream& operator<<( std::ostream& os, const Vec3& v );
 
-Vec3 operator+ (const Vec3& lhs, const Vec3& rhs);
-Vec3 operator* (const Vec3& lhs, const Vec3& rhs);
-Vec3 operator- (const Vec3& lhs, const Vec3& rhs);
-Vec3 operator/ (const Vec3& lhs, const Vec3& rhs);
-Vec3 operator* (float v, const Vec3& rhs);
-Vec3 operator* (const Vec3& lhs, float v);
-Vec3 operator/ (const Vec3& lhs, float v);
+Vec3 operator+( const Vec3& lhs, const Vec3& rhs );
+Vec3 operator*( const Vec3& lhs, const Vec3& rhs );
+Vec3 operator-( const Vec3& lhs, const Vec3& rhs );
+Vec3 operator/( const Vec3& lhs, const Vec3& rhs );
+Vec3 operator*( float v, const Vec3& rhs );
+Vec3 operator*( const Vec3& lhs, float v );
+Vec3 operator/( const Vec3& lhs, float v );
 
-float dot(const Vec3& lhs, const Vec3& rhs);
-Vec3 cross(const Vec3& lhs, const Vec3& rhs);
+float dot( const Vec3& lhs, const Vec3& rhs );
+Vec3 cross( const Vec3& lhs, const Vec3& rhs );
 
-bool operator== (const Vec3& lhs, const Vec3& rhs);
+bool operator==( const Vec3& lhs, const Vec3& rhs );
 
-}
+}  // namespace RTWK
 
-#endif //RAYTRACER_IN_A_WEEKEND_VEC3_HH
+#endif  // RAYTRACER_IN_A_WEEKEND_VEC3_HH

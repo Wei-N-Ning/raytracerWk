@@ -11,52 +11,53 @@
 
 #include <ostream>
 
-namespace RTWK {
-
+namespace RTWK
+{
 // Ray function is to abstract the examples in the book so that I can
 // reuse the base algorithm (iterating the pixels and writing out color)
 // while "plug in" the custom ray-to-color generator function in each
 // exercise
 // this is used prior to chapter 8, where the concept of material is
 // introduced
-using RayFunction = Vec3 (Ray&);
+using RayFunction = Vec3( Ray& );
 
 // used in chapter 8 to enable material
 // also follow the book's example to use the hitable
 // "world" to encapsulate the render entities
 class IHitable;
-class IRender {
+class IRender
+{
 public:
-    virtual Vec3 operator() (Ray& ray) = 0;
+    virtual Vec3 operator()( Ray& ray ) = 0;
 };
 
 // The default sky-blue gradient background
-Vec3 backgroundColor(Ray& ray);
+Vec3 backgroundColor( Ray& ray );
 
 // used in chapter 1 to test the image driver (ppm)
-void createTestImage(
-    std::ostream &os,
-    int xNumPixels, int yNumPixels);
+void createTestImage( std::ostream& os, int xNumPixels, int yNumPixels );
 
 // used until chapter 6 to output image
-void createImage(
-    std::ostream &os,
-    int xNumPixels, int yNumPixels, RayFunction f);
+void createImage( std::ostream& os, int xNumPixels, int yNumPixels, RayFunction f );
 
 // used in chapter 6 to test camera and AA
-void createImageCamAA(
-    std::ostream &os,
-    int xNumPixels, int yNumPixels, int samplesPerPixel,
-    Camera& cam, RayFunction f,
-    bool gammaCorrection = false);
+void createImageCamAA( std::ostream& os,
+                       int xNumPixels,
+                       int yNumPixels,
+                       int samplesPerPixel,
+                       Camera& cam,
+                       RayFunction f,
+                       bool gammaCorrection = false );
 
 // used in chapter 8 to support material
-void createImageMaterial(
-    std::ostream &os,
-    int xNumPixels, int yNumPixels, int samplesPerPixel,
-    Camera& cam, IRender& render,
-    bool gammaCorrection = true);
+void createImageMaterial( std::ostream& os,
+                          int xNumPixels,
+                          int yNumPixels,
+                          int samplesPerPixel,
+                          Camera& cam,
+                          IRender& render,
+                          bool gammaCorrection = true );
 
-}
+}  // namespace RTWK
 
-#endif //RAYTRACER_IN_A_WEEKEND_PPM_HH
+#endif  // RAYTRACER_IN_A_WEEKEND_PPM_HH
