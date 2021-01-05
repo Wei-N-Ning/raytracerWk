@@ -29,7 +29,7 @@ class IHitable;
 class IRender
 {
 public:
-    virtual Vec3 operator()( Ray& ray ) = 0;
+    virtual Vec3 render( Ray& ray ) = 0;
 };
 
 // The default sky-blue gradient background

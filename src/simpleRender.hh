@@ -17,7 +17,7 @@ class SimpleRender : public RTWK::IRender
 public:
     ~SimpleRender();
 
-    RTWK::Vec3 operator()( RTWK::Ray &ray ) override;
+    RTWK::Vec3 render( RTWK::Ray &ray ) override;
 
     void updateWorld()
     {

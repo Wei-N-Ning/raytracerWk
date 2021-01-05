@@ -11,7 +11,7 @@ namespace RTWK
 {
 constexpr float maxFloat = std::numeric_limits< float >::max();
 
-RTWK::Vec3 SimpleRender::operator()( RTWK::Ray& ray )
+RTWK::Vec3 SimpleRender::render( RTWK::Ray& ray )
 {
     using namespace RTWK;
 
@@ -22,7 +22,7 @@ RTWK::Vec3 SimpleRender::operator()( RTWK::Ray& ray )
         Vec3 attenuation;
         if ( hitRecord.material->scatter( ray, hitRecord, attenuation, scattered ) )
         {
-            return attenuation * ( *this )( scattered );
+            return attenuation * render( scattered );
         }
         else
         {

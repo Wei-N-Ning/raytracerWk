@@ -25,7 +25,7 @@ namespace RTWK
 // material pointer in the HitRecord will be set to point at the
 // material pointer the sphere was given when it was set up in main()
 //
-// when the color() routine gets the HitRecord it can call member
+// when the color() routine (ray function) gets the HitRecord it can call member
 // functions of the material pointer to find out what ray, if any, is
 // scattered."
 
@@ -103,7 +103,7 @@ private:
 };
 
 // P31
-//
+// glass
 class Dielectric : public IMaterial
 {
 public:

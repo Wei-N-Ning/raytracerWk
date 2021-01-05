@@ -39,10 +39,10 @@ class Sphere : public IHitable
 {
 public:
     Sphere() = default;
-    Sphere( const Vec3& center, float radius );
+    Sphere( Vec3  center, float radius );
 
     // used in chapter 8, to support material
-    Sphere( const Vec3& center, float radius, IMaterial* material );
+    Sphere( Vec3  center, float radius, IMaterial* material );
 
     bool hit( const Ray& ray, float t_min, float t_max, HitRecord& record ) override;
 
@@ -52,7 +52,7 @@ private:
     IMaterial* m_material = nullptr;
 };
 
-// Like the example in the book, HitablaList does not own the Hitable
+// Like the example in the book, HitableList does not own the Hitable
 // objects. It does not offer any means to free these resources.
 class HitableList : public IHitable
 {

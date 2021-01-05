@@ -14,8 +14,8 @@ namespace RTWK
 RTWK::Vec3 randomInUnitSphere()
 {
     RTWK::Vec3 p;
-    static std::default_random_engine gen;
-    static std::uniform_real_distribution< float > dist( 0, 1 );
+    static std::mt19937 gen{ std::random_device()() };
+    static std::uniform_real_distribution< float > dist( 0.0, 1.0 );
     do
     {
         RTWK::Vec3 s = 2.0f * RTWK::Vec3( dist( gen ), dist( gen ), dist( gen ) );
@@ -42,6 +42,10 @@ bool Lambertian::scatter( const RTWK::Ray &inRay,
 }
 
 // P26
+// ray reflection formula:
+// https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
+// the key is to understand the project of v (in-ray) in the direction of n
+
 // NOTE: here is my explanation:
 // let v' be the opposite of v, that shoots off from B's original, then
 // reflected = 2B - v'
@@ -85,7 +89,7 @@ bool refract( const Vec3 &i_v, const Vec3 &i_n, float i_ni_over_nt, Vec3 &o_refr
     float discriminant = 1.0f - i_ni_over_nt * i_ni_over_nt * ( 1.0f - dt * dt );
     if ( discriminant > 0.0f )
     {
-        o_refracted = i_ni_over_nt * ( uv - un * dt ) - un * sqrt( discriminant );
+        o_refracted = i_ni_over_nt * ( uv - un * dt ) - un * std::sqrt( discriminant );
         return true;
     }
     return false;

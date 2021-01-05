@@ -51,10 +51,11 @@ public:
     {
     }
 
-    Camera( float i_vfov, float i_aspect );
+    Camera( float vFov, float aspect );
 
-    Camera( Vec3 i_look_from, Vec3 i_look_at, Vec3 i_vup, float i_vfov, float i_aspect );
+    Camera( const Vec3& lookFrom, const Vec3& lookAt, const Vec3& vup, float vFov, float aspect );
 
+    // u, v are in the range of (0.0, 1.0)
     virtual Ray getRay( float u, float v )
     {
         return Ray( m_origin,
@@ -83,13 +84,13 @@ protected:
 class DepthCamera : public Camera
 {
 public:
-    DepthCamera( Vec3 i_look_from,
-                 Vec3 i_look_at,
-                 Vec3 i_vup,
-                 float i_vfov,
-                 float i_aspect,
-                 float i_aperture,
-                 float i_focus_dist );
+    DepthCamera( const Vec3& lookFrom,
+                 const Vec3& lookAt,
+                 const Vec3& vup,
+                 float vFov,
+                 float aspect,
+                 float aperture,
+                 float focusDist );
 
     Ray getRay( float s, float t ) override;
 
