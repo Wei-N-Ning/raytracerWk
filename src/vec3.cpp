@@ -199,6 +199,14 @@ float dot( const Vec3 &lhs, const Vec3 &rhs )
 
 Vec3 cross( const Vec3 &lhs, const Vec3 &rhs )
 {
+    /*
+     * | 1  1  1  |
+     * | lx ly lz |
+     * | rx ry rz |
+     *
+     * ly rz - lx rz + lz rx - ly rx + lx ry - lz ry
+     * l1 r2 - l2 r1 + l2 r0 - l0 r2 + l0 r1 - l1 r0
+     * */
     return Vec3( lhs.m_elements[ 1 ] * rhs.m_elements[ 2 ]
                      - lhs.m_elements[ 2 ] * rhs.m_elements[ 1 ],
                  lhs.m_elements[ 2 ] * rhs.m_elements[ 0 ]

@@ -43,7 +43,7 @@ RTWK::Vec3 opaqueSphere( RTWK::Ray& ray )
     {
         return { 1, 0, 0 };
     }
-    return RTWK::backgroundColor( ray );
+    return RTWK::generateBackgroundColor( ray );
 }
 
 void test_renderSphere()

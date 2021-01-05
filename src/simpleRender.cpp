@@ -29,7 +29,7 @@ RTWK::Vec3 SimpleRender::operator()( RTWK::Ray& ray )
             return { 0, 0, 0 };
         }
     }
-    return backgroundColor( ray );
+    return generateBackgroundColor( ray );
 }
 
 SimpleRender::~SimpleRender()

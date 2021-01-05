@@ -58,7 +58,6 @@ public:
     virtual Ray getRay( float u, float v )
     {
         return Ray( m_origin,
-
                     m_lowerLeftCorner + u * m_horizontal + v * m_vertical - m_origin );
     }
 

@@ -31,7 +31,8 @@ class Ray
 {
 public:
     Ray() = default;
-    Ray( const Vec3& A, const Vec3& B );
+    // p(t) = A + tB
+    Ray( Vec3  A, Vec3  B );
 
     //! A
     const Vec3& origin() const;

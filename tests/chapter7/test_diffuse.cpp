@@ -92,7 +92,7 @@ RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
         // they are 50% reflectors
         return 0.5f * newColor;
     }
-    return backgroundColor( ray );
+    return generateBackgroundColor( ray );
 }
 
 int main()

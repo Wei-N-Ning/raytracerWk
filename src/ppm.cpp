@@ -9,10 +9,12 @@
 
 namespace RTWK
 {
-Vec3 backgroundColor( Ray& r )
+Vec3 generateBackgroundColor( Ray& r )
 {
     RTWK::Vec3 dir = r.direction().normalized();
+    // center to horizon
     float t = 0.5f * ( dir.y() + 1.0f );
+    // a two-tune blend function using t as the parameter, ranging (0.0f, 1.0f)
     return ( 1.0f - t ) * RTWK::Vec3( 1.0, 1.0, 1.0 ) + t * RTWK::Vec3( 0.5, 0.7, 1.0 );
 }
 
@@ -25,6 +27,8 @@ void createTestImage( std::ostream& os, int xNumPixels, int yNumPixels )
     {
         for ( int x = 0; x < xNumPixels; ++x )
         {
+            // from top-left corner, 0, 0 to bottom-right corner 255, 255
+            // blend <0.0, 0.0, 0.0> and <255., 255., 255.,>
             Vec3 color{
                 float( x ) / float( xNumPixels ), float( y ) / float( yNumPixels ), 0.2 };
             int ir = int( 255.99f * color.r() );
@@ -35,7 +39,7 @@ void createTestImage( std::ostream& os, int xNumPixels, int yNumPixels )
     }
 }
 
-void createImage( std::ostream& os, int xNumPixels, int yNumPixels, RayFunction f )
+void createImage( std::ostream& os, int xNumPixels, int yNumPixels, const RayFunction& f )
 {
     os << "P3" << std::endl
        << xNumPixels << " " << yNumPixels << std::endl
@@ -84,13 +88,13 @@ void createImageCamAA( std::ostream& os,
                        int yNumPixels,
                        int samplesPerPixel,
                        Camera& cam,
-                       RayFunction rayFunction,
+                       const RayFunction& rayFunction,
                        bool gammaCorrection )
 {
     os << "P3" << std::endl
        << xNumPixels << " " << yNumPixels << std::endl
        << "255" << std::endl;
-    std::default_random_engine generator;
+    std::mt19937 generator{ std::random_device()() };
     std::uniform_real_distribution< double > dist( 0, 1 );
 
     for ( int y = yNumPixels - 1; y >= 0; --y )
@@ -101,6 +105,7 @@ void createImageCamAA( std::ostream& os,
 
             for ( int sample = 0; sample < samplesPerPixel; ++sample )
             {
+                // sub pixel (0, 1) sampling
                 float u = float( x + dist( generator ) ) / float( xNumPixels );
                 float v = float( y + dist( generator ) ) / float( yNumPixels );
                 Ray r = cam.getRay( u, v );
@@ -131,7 +136,7 @@ void createImageMaterial( std::ostream& os,
     os << "P3" << std::endl
        << xNumPixels << " " << yNumPixels << std::endl
        << "255" << std::endl;
-    std::default_random_engine generator;
+    std::mt19937 generator{ std::random_device()() };
     std::uniform_real_distribution< double > dist( 0, 1 );
 
     for ( int y = yNumPixels - 1; y >= 0; --y )

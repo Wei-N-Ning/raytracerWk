@@ -37,7 +37,7 @@ RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
         Vec3 N = hitRecord.normal;
         return 0.5f * Vec3( N.x() + 1.0f, N.y() + 1.0f, N.z() + 1.0f );
     }
-    return backgroundColor( ray );
+    return generateBackgroundColor( ray );
 }
 
 int main()

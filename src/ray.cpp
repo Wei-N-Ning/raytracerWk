@@ -2,11 +2,13 @@
 // Created by wein on 26/08/18.
 //
 
+#include <utility>
+
 #include "ray.hh"
 
 namespace RTWK
 {
-Ray::Ray( const RTWK::Vec3& A, const RTWK::Vec3& B ) : m_A( A ), m_B( B )
+Ray::Ray( RTWK::Vec3  A, RTWK::Vec3  B ) : m_A(std::move( A )), m_B(std::move( B ))
 {
 }
 
