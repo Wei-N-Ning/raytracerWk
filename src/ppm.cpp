@@ -130,7 +130,7 @@ void createImageMaterial( std::ostream& os,
                           int yNumPixels,
                           int samplesPerPixel,
                           Camera& cam,
-                          IRender& render,
+                          IRender& renderer,
                           bool gammaCorrection )
 {
     os << "P3" << std::endl
@@ -150,7 +150,7 @@ void createImageMaterial( std::ostream& os,
                 float u = float( x + dist( generator ) ) / float( xNumPixels );
                 float v = float( y + dist( generator ) ) / float( yNumPixels );
                 Ray r = cam.getRay( u, v );
-                outColor += render( r );
+                outColor += renderer.render( r );
             }
             outColor /= float( samplesPerPixel );
             if ( gammaCorrection )

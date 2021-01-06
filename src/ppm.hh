@@ -56,7 +56,7 @@ void createImageMaterial( std::ostream& os,
                           int yNumPixels,
                           int samplesPerPixel,
                           Camera& cam,
-                          IRender& render,
+                          IRender& renderer,
                           bool gammaCorrection = true );
 
 }  // namespace RTWK
