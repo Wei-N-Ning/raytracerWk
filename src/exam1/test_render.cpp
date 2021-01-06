@@ -13,6 +13,7 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+#include <optional>
 
 using Vec3 = std::array< double, 3 >;
 
@@ -75,17 +76,17 @@ inline Vec3 normalized( const Vec3& v ) noexcept
 }
 
 // ray(t) = A + B * t
-struct Ray : public std::pair< Vec3, Vec3 >
+using Ray = std::pair< Vec3, Vec3 >;
+
+inline Vec3 origin( const Ray& r ) noexcept
 {
-    inline Vec3& origin() noexcept
-    {
-        return this->first;
-    }
-    inline Vec3& direction() noexcept
-    {
-        return this->second;
-    }
-};
+    return r.first;
+}
+
+inline Vec3 direction( const Ray& r ) noexcept
+{
+    return r.second;
+}
 
 TEST_CASE( "vector algebra" )
 {
@@ -124,30 +125,38 @@ TEST_CASE( "vector algebra" )
 struct Viewport
 {
     std::vector< Vec3 > pixels{};
-    size_t width{};
-    size_t height{};
+    int xNumPixels{};
+    int yNumPixels{};
+    double halfW{};
+    double halfH{};
 
-    Viewport( size_t w, size_t h ) : pixels( w * h ), width( w ), height( h )
+    Viewport( int w, int h )
+        : pixels( w * h )
+        , xNumPixels( w )
+        , yNumPixels( h )
+        , halfW( w / 2.0 )
+        , halfH( h / 2.0 )
     {
     }
 
-    inline void foreach ( std::function< Vec3( size_t, size_t ) >& f )
+    inline void foreach ( const std::function< Vec3( double, double ) >& f )
     {
-        for ( auto y = 0; y < height; ++y )
+        for ( auto y = 0; y < yNumPixels; ++y )
         {
-            for ( auto x = 0; x < width; ++x )
+            for ( auto x = 0; x < xNumPixels; ++x )
             {
-                pixels[ y * width + x ] = f( x, y );
+                pixels[ y * xNumPixels + x ] =
+                    f( ( x - halfW ) / halfW, ( y - halfH ) / halfH );
             }
         }
     }
 
     std::ostream& write( std::ostream& os ) const
     {
-        os << "P3\n" << width << " " << height << "\n255\n";
+        os << "P3\n" << xNumPixels << " " << yNumPixels << "\n255\n";
         std::for_each( std::cbegin( pixels ),
                        std::cend( pixels ),
-                       [ w = width, &os, idx = 1 ]( const Vec3& pix ) mutable {
+                       [ w = xNumPixels, &os, idx = 1 ]( const Vec3& pix ) mutable {
                            os << ( int )( pix[ 0 ] ) << " " << ( int )( pix[ 1 ] ) << " "
                               << ( int )( pix[ 2 ] ) << ( idx++ % w == 0 ? '\n' : ' ' );
                        } );
@@ -160,10 +169,117 @@ TEST_CASE( "test image io" )
     std::ostringstream oss;
     Viewport v{ 2, 2 };
     v.write( oss );
-    CHECK_EQ(std::string{R"(P3
+    CHECK_EQ( std::string{ R"(P3
 2 2
 255
 0 0 0 0 0 0
 0 0 0 0 0 0
-)"}, oss.str());
+)" },
+              oss.str() );
 }
+
+struct IHitable
+{
+    virtual std::optional< Vec3 > hitTest( const Ray& in,
+                                           double t_min,
+                                           double t_max ) = 0;
+};
+
+struct GradientBackground : IHitable
+{
+    Vec3 toneA{ 67, 127, 200 };
+    Vec3 toneB{ 200, 248, 255 };
+
+    GradientBackground() = default;
+
+    GradientBackground( const Vec3& a, const Vec3& b ) : toneA( a ), toneB( b )
+    {
+    }
+
+    std::optional< Vec3 > hitTest( const Ray& in, double, double ) override
+    {
+        auto ratio = normalized( direction( in ) )[ 1 ] / 1.0;
+        return toneA + ( toneB - toneA ) * ratio;
+    }
+};
+
+TEST_CASE( "hit-test background" )
+{
+    Ray r{ { 0, 0, 0 }, { 0.1, 0.3, -1 } };
+    GradientBackground bg{};
+    // always hit
+    CHECK( bg.hitTest( r, 0, 0 ) );
+    {
+        // test image
+        std::ostringstream oss;
+        Viewport v{ 32, 24 };
+        v.foreach (
+            //
+            [ bg = GradientBackground{} ]( auto x, auto y ) mutable -> Vec3 {
+                if ( auto optColor = bg.hitTest( Ray{ { 0, 0, 0 }, { x, y, -3 } }, 0, 0 );
+                     optColor )
+                {
+                    return *optColor;
+                }
+                return {};
+            } );
+        v.write( oss );
+    }
+}
+
+struct Sphere : IHitable
+{
+    Vec3 center{};
+    double radius{};
+    Vec3 color{ 150, 100, 100 };
+
+    Sphere( const Vec3& v, double r ) : center( v ), radius( r )
+    {
+    }
+
+    std::optional< Vec3 > hitTest( const Ray& in, double t_min, double t_max ) override
+    {
+        Vec3 c_P = origin( in ) - center;
+        Vec3 dir = direction( in );
+        double a = dir * dir;
+        double b = 2.0f * ( c_P * dir );
+        double c = c_P * c_P - radius * radius;
+        double discriminant = b * b - 4 * a * c;
+        if ( discriminant < 0 )
+        {
+            // no hit, discard this ray
+            return std::nullopt;
+        }
+        double t = ( -b - std::sqrt( discriminant ) ) / ( 2.0f * a );
+        if ( t < t_max && t > t_min )
+        {
+            // the near hit point t is within (t_min, t_max)
+            return color;
+        }
+        t = ( -b + std::sqrt( discriminant ) ) / ( 2.0f * a );
+        if ( t < t_max && t > t_min )
+        {
+            // the near hit point t is outside (t_min, t_max);
+            // find the second root to try to get the far hit point
+            return color;
+        }
+        return std::nullopt;
+    }
+};
+
+TEST_CASE( "hit-test sphere" )
+{
+    Sphere s( { 2, 2, 2 }, 1 );
+    // hit
+    {
+        Ray r1{ { 0.1, 0.1, 0.1 }, { 2.1, 2.1, 2.1 } };
+        auto hit = s.hitTest( r1, 0, 9999 );
+        CHECK( hit );
+    }  // discard
+    {
+        Ray r1{ { 0.1, 0.1, 0.1 }, { -2.1, -2.1, -2.1 } };
+        auto hit = s.hitTest( r1, 0, 9999 );
+        CHECK_FALSE( hit );
+    }
+}
+
