@@ -1,5 +1,5 @@
 
-add_library(rtwk STATIC
+add_library(rtwk OBJECT
     ppm.cpp
     ppm.hh
     vec3.cpp
@@ -15,9 +15,4 @@ add_library(rtwk STATIC
     simpleRender.cpp
     simpleRender.hh
     )
-target_include_directories(rtwk
-    PUBLIC
-    .)
-set_target_properties(rtwk
-    PROPERTIES
-    CXX_STANDARD 14)
+target_include_directories(rtwk PUBLIC .)
