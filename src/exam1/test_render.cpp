@@ -14,6 +14,8 @@
 #include <iostream>
 #include <sstream>
 #include <optional>
+#include <memory>
+#include <random>
 
 using Vec3 = std::array< double, 3 >;
 
@@ -88,6 +90,11 @@ inline Vec3 direction( const Ray& r ) noexcept
     return r.second;
 }
 
+inline Vec3 at( const Ray& r, double t ) noexcept
+{
+    return r.first + r.second * t;
+}
+
 TEST_CASE( "vector algebra" )
 {
     // length
@@ -141,12 +148,21 @@ struct Viewport
 
     inline void foreach ( const std::function< Vec3( double, double ) >& f )
     {
+        static std::mt19937 eng{ std::random_device()() };
+        static std::uniform_real_distribution< double > dist{ -0.01, 0.01 };
         for ( auto y = 0; y < yNumPixels; ++y )
         {
             for ( auto x = 0; x < xNumPixels; ++x )
             {
-                pixels[ y * xNumPixels + x ] =
-                    f( ( x - halfW ) / halfW, ( y - halfH ) / halfH );
+                // sub pixel sampling
+                Vec3 color{};
+                for ( auto i = 0; i < 8; ++i )
+                {
+                    color = color
+                            + f( ( x - halfW ) / halfW + dist( eng ),
+                                 ( y - halfH ) / halfH + dist( eng ) );
+                }
+                pixels[ y * xNumPixels + x ] = color / 8.0;
             }
         }
     }
@@ -178,11 +194,18 @@ TEST_CASE( "test image io" )
               oss.str() );
 }
 
+using HitRecord = std::pair< Vec3, Vec3 >;  // color, p
+
 struct IHitable
 {
-    virtual std::optional< Vec3 > hitTest( const Ray& in,
-                                           double t_min,
-                                           double t_max ) = 0;
+    virtual std::optional< HitRecord > hitTest( const Ray& in,
+                                                double t_min,
+                                                double t_max ) = 0;
+
+    virtual std::optional< Ray > reflect( const Ray& in, const Vec3& point )
+    {
+        return std::nullopt;
+    };
 };
 
 struct GradientBackground : IHitable
@@ -196,10 +219,10 @@ struct GradientBackground : IHitable
     {
     }
 
-    std::optional< Vec3 > hitTest( const Ray& in, double, double ) override
+    std::optional< HitRecord > hitTest( const Ray& in, double, double ) override
     {
         auto ratio = normalized( direction( in ) )[ 1 ] / 1.0;
-        return toneA + ( toneB - toneA ) * ratio;
+        return std::make_pair( toneA + ( toneB - toneA ) * ratio, Vec3{} );
     }
 };
 
@@ -216,10 +239,11 @@ TEST_CASE( "hit-test background" )
         v.foreach (
             //
             [ bg = GradientBackground{} ]( auto x, auto y ) mutable -> Vec3 {
-                if ( auto optColor = bg.hitTest( Ray{ { 0, 0, 0 }, { x, y, -3 } }, 0, 0 );
-                     optColor )
+                if ( auto optRecord =
+                         bg.hitTest( Ray{ { 0, 0, 0 }, { x, y, -3 } }, 0, 0 );
+                     optRecord )
                 {
-                    return *optColor;
+                    return optRecord->first;
                 }
                 return {};
             } );
@@ -237,7 +261,9 @@ struct Sphere : IHitable
     {
     }
 
-    std::optional< Vec3 > hitTest( const Ray& in, double t_min, double t_max ) override
+    std::optional< HitRecord > hitTest( const Ray& in,
+                                        double t_min,
+                                        double t_max ) override
     {
         Vec3 c_P = origin( in ) - center;
         Vec3 dir = direction( in );
@@ -254,16 +280,23 @@ struct Sphere : IHitable
         if ( t < t_max && t > t_min )
         {
             // the near hit point t is within (t_min, t_max)
-            return color;
+            return std::make_pair( color, at( in, t ) );
         }
         t = ( -b + std::sqrt( discriminant ) ) / ( 2.0f * a );
         if ( t < t_max && t > t_min )
         {
             // the near hit point t is outside (t_min, t_max);
             // find the second root to try to get the far hit point
-            return color;
+            return std::make_pair( color, at( in, t ) );
         }
         return std::nullopt;
+    }
+
+    std::optional< Ray > reflect( const Ray& in, const Vec3& point ) override
+    {
+        auto v = normalized( direction( in ) );
+        auto N = normalized( point - center );
+        return Ray{ point, normalized( v - N * ( v * N ) * 2 ) };
     }
 };
 
@@ -283,3 +316,40 @@ TEST_CASE( "hit-test sphere" )
     }
 }
 
+TEST_CASE( "render" )
+{
+    std::vector< std::shared_ptr< IHitable > > hitables{
+        std::make_shared< Sphere >( Vec3{ 0, 0, -3 }, 0.1 ),
+        std::make_shared< GradientBackground >() };
+    {
+        std::function< Vec3( const Ray&, size_t ) > render = [ & ]( const Ray& ray,
+                                                                    size_t c ) -> Vec3 {
+            for ( const auto& hitable : hitables )
+            {
+                if ( auto optRecord = hitable->hitTest( ray, 0, 1 ); optRecord )
+                {
+                    const auto& [ color, point ] = *optRecord;
+                    if ( c > 0 )
+                    {
+                        if ( auto optReflected = hitable->reflect( ray, point );
+                             optReflected )
+                        {
+                            return color * 0.25 + render( *optReflected, c - 1 ) * 0.75;
+                        }
+                    }
+                    return color;
+                }
+            }
+            return {};
+        };
+        std::ofstream ofs{ "/home/weining/work/tmp/out.ppm" };
+        Viewport v{ 200, 100 };
+        v.foreach (
+            //
+            [ & ]( auto x, auto y ) mutable -> Vec3 {
+                Ray ray{ { 0, 0, 0 }, { x, y, -9 } };
+                return render( ray, 3 );
+            } );
+        v.write( ofs );
+    }
+}
