@@ -41,14 +41,20 @@ bool Sphere::hit( const RTWK::Ray &ray, float t_min, float t_max, HitRecord &rec
     float c = dot( centerToOrigin, centerToOrigin ) - m_radius * m_radius;
 
     float discriminant = b * b - 4 * a * c;
+
+    // no hit, discard this ray
     if ( discriminant < 0 )
     {
         return false;
     }
 
+    // find the first root to get the near hit point
     float t = ( -b - std::sqrt( discriminant ) ) / ( 2.0f * a );
+
+    // the near hit point t is within (t_min, t_max)
     if ( t < t_max && t > t_min )
     {
+        // create a hit record from this t
         record.t = t;
         record.p = ray.pointAtParameter( record.t );
         record.normal = ( ( record.p - m_center ) / m_radius ).normalized();
@@ -56,9 +62,12 @@ bool Sphere::hit( const RTWK::Ray &ray, float t_min, float t_max, HitRecord &rec
         return true;
     }
 
+    // the near hit point t is outside (t_min, t_max);
+    // find the second root to try to get the far hit point
     t = ( -b + std::sqrt( discriminant ) ) / ( 2.0f * a );
     if ( t < t_max && t > t_min )
     {
+        // create a hit record from this t
         record.t = t;
         record.p = ray.pointAtParameter( record.t );
         record.normal = ( ( record.p - m_center ) / m_radius ).normalized();
@@ -66,6 +75,7 @@ bool Sphere::hit( const RTWK::Ray &ray, float t_min, float t_max, HitRecord &rec
         return true;
     }
 
+    // the far hit point is outside the range; discard
     return false;
 }
 
@@ -82,14 +92,19 @@ bool HitableList::hit( const RTWK::Ray &ray,
     {
         if ( hitable->hit( ray, t_min, closestSoFar, tempRecord ) )
         {
+            // hit something and the hit point is recorded
             hitAnything = true;
+            // shrink the search range to (t_min, this_hit_point) so that we only look
+            // for any other hitable within this range, not looking any further
             closestSoFar = tempRecord.t;
             if ( m_supportMaterial )
             {
+                // thread the hit record with material to the caller
                 record = tempRecord;
             }
             else
             {
+                // discard the hit record's material ('cos it won't have any)
                 record.t = tempRecord.t;
                 record.normal = tempRecord.normal;
                 record.p = tempRecord.p;

@@ -1,5 +1,7 @@
 
-add_library(rtwk OBJECT
+add_subdirectory(exam1)
+
+add_library(rtwk STATIC
     ppm.cpp
     ppm.hh
     vec3.cpp
