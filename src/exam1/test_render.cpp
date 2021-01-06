@@ -11,6 +11,8 @@
 #include <functional>
 #include <utility>
 #include <cmath>
+#include <iostream>
+#include <sstream>
 
 using Vec3 = std::array< double, 3 >;
 
@@ -119,3 +121,49 @@ TEST_CASE( "vector algebra" )
     }
 }
 
+struct Viewport
+{
+    std::vector< Vec3 > pixels{};
+    size_t width{};
+    size_t height{};
+
+    Viewport( size_t w, size_t h ) : pixels( w * h ), width( w ), height( h )
+    {
+    }
+
+    inline void foreach ( std::function< Vec3( size_t, size_t ) >& f )
+    {
+        for ( auto y = 0; y < height; ++y )
+        {
+            for ( auto x = 0; x < width; ++x )
+            {
+                pixels[ y * width + x ] = f( x, y );
+            }
+        }
+    }
+
+    std::ostream& write( std::ostream& os ) const
+    {
+        os << "P3\n" << width << " " << height << "\n255\n";
+        std::for_each( std::cbegin( pixels ),
+                       std::cend( pixels ),
+                       [ w = width, &os, idx = 1 ]( const Vec3& pix ) mutable {
+                           os << ( int )( pix[ 0 ] ) << " " << ( int )( pix[ 1 ] ) << " "
+                              << ( int )( pix[ 2 ] ) << ( idx++ % w == 0 ? '\n' : ' ' );
+                       } );
+        return os;
+    }
+};
+
+TEST_CASE( "test image io" )
+{
+    std::ostringstream oss;
+    Viewport v{ 2, 2 };
+    v.write( oss );
+    CHECK_EQ(std::string{R"(P3
+2 2
+255
+0 0 0 0 0 0
+0 0 0 0 0 0
+)"}, oss.str());
+}
