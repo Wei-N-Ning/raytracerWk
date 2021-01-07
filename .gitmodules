@@ -7,3 +7,6 @@
 [submodule "3rdParty/doctest"]
 	path = 3rdParty/doctest
 	url = https://github.com/onqtam/doctest
+[submodule "3rdParty/xsimd"]
+	path = 3rdParty/xsimd
+	url = https://github.com/xtensor-stack/xsimd
