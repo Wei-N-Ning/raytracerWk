@@ -134,35 +134,42 @@ struct Viewport
     std::vector< Vec3 > pixels{};
     int xNumPixels{};
     int yNumPixels{};
+    double w{};
+    double h{};
     double halfW{};
     double halfH{};
 
-    Viewport( int w, int h )
-        : pixels( w * h )
-        , xNumPixels( w )
-        , yNumPixels( h )
-        , halfW( w / 2.0 )
-        , halfH( h / 2.0 )
+    Viewport( int xPixels, int yPixels, double width, double height )
+        : pixels( xPixels * yPixels )
+        , xNumPixels( xPixels )
+        , yNumPixels( yPixels )
+        , w( width )
+        , h( height )
+        , halfW( width / 2.0 )
+        , halfH( height / 2.0 )
     {
     }
 
-    inline void foreach ( const std::function< Vec3( double, double ) >& f )
+    inline void foreach ( const std::function< Vec3( const Ray& ) >& f )
     {
         static std::mt19937 eng{ std::random_device()() };
         static std::uniform_real_distribution< double > dist{ -0.01, 0.01 };
+
+        Vec3 lowerLeftCorner{ -2.0, -1.0, -1.0 };
+        Vec3 horizontal{ w, 0.0, 0.0 };
+        Vec3 vertical{ 0.0, h, 0.0 };
+        Vec3 origin{ .0, .0, .0 };
+
         for ( auto y = 0; y < yNumPixels; ++y )
         {
             for ( auto x = 0; x < xNumPixels; ++x )
             {
-                // sub pixel sampling
-                Vec3 color{};
-                for ( auto i = 0; i < 8; ++i )
-                {
-                    color = color
-                            + f( ( x - halfW ) / halfW + dist( eng ),
-                                 ( y - halfH ) / halfH + dist( eng ) );
-                }
-                pixels[ y * xNumPixels + x ] = color / 8.0;
+                double u = double( x ) / double( xNumPixels );
+                double v = double( y ) / double( yNumPixels );
+
+                Vec3 color =
+                    f( Ray{ origin, lowerLeftCorner + horizontal * u + vertical * v } );
+                pixels[ y * xNumPixels + x ] = color;
             }
         }
     }
@@ -183,7 +190,7 @@ struct Viewport
 TEST_CASE( "test image io" )
 {
     std::ostringstream oss;
-    Viewport v{ 2, 2 };
+    Viewport v{ 2, 2, 1.0, 1.0 };
     v.write( oss );
     CHECK_EQ( std::string{ R"(P3
 2 2
@@ -210,8 +217,10 @@ struct IHitable
 
 struct GradientBackground : IHitable
 {
-    Vec3 toneA{ 67, 127, 200 };
-    Vec3 toneB{ 200, 248, 255 };
+    // [A]bove
+    Vec3 toneA{ 255, 0, 0 };
+    // [B]ottom
+    Vec3 toneB{ 0, 0, 255 };
 
     GradientBackground() = default;
 
@@ -221,8 +230,8 @@ struct GradientBackground : IHitable
 
     std::optional< HitRecord > hitTest( const Ray& in, double, double ) override
     {
-        auto ratio = normalized( direction( in ) )[ 1 ] / 1.0;
-        return std::make_pair( toneA + ( toneB - toneA ) * ratio, Vec3{} );
+        auto ratio = ( normalized( direction( in ) )[ 1 ] + 1.0 ) * 0.5;
+        return std::make_pair( toneA * ( 1.0 - ratio ) + toneB * ratio, Vec3{} );
     }
 };
 
@@ -235,13 +244,11 @@ TEST_CASE( "hit-test background" )
     {
         // test image
         std::ostringstream oss;
-        Viewport v{ 32, 24 };
+        Viewport v{ 32, 24, 4.0, 3.0 };
         v.foreach (
             //
-            [ bg = GradientBackground{} ]( auto x, auto y ) mutable -> Vec3 {
-                if ( auto optRecord =
-                         bg.hitTest( Ray{ { 0, 0, 0 }, { x, y, -3 } }, 0, 0 );
-                     optRecord )
+            [ bg = GradientBackground{} ]( const auto& ray ) mutable -> Vec3 {
+                if ( auto optRecord = bg.hitTest( ray, 0, 0 ); optRecord )
                 {
                     return optRecord->first;
                 }
@@ -319,37 +326,34 @@ TEST_CASE( "hit-test sphere" )
 TEST_CASE( "render" )
 {
     std::vector< std::shared_ptr< IHitable > > hitables{
-        std::make_shared< Sphere >( Vec3{ 0, 0, -3 }, 0.1 ),
+        // std::make_shared< Sphere >( Vec3{ 0, 0, -3 }, 0.1 ),
         std::make_shared< GradientBackground >() };
-    {
-        std::function< Vec3( const Ray&, size_t ) > render = [ & ]( const Ray& ray,
-                                                                    size_t c ) -> Vec3 {
-            for ( const auto& hitable : hitables )
+    std::function< Vec3( const Ray&, size_t ) > render = [ & ]( const Ray& ray,
+                                                                size_t c ) -> Vec3 {
+        for ( const auto& hitable : hitables )
+        {
+            if ( auto optRecord = hitable->hitTest( ray, 0, 1 ); optRecord )
             {
-                if ( auto optRecord = hitable->hitTest( ray, 0, 1 ); optRecord )
-                {
-                    const auto& [ color, point ] = *optRecord;
-                    if ( c > 0 )
-                    {
-                        if ( auto optReflected = hitable->reflect( ray, point );
-                             optReflected )
-                        {
-                            return color * 0.25 + render( *optReflected, c - 1 ) * 0.75;
-                        }
-                    }
-                    return color;
-                }
+                const auto& [ color, point ] = *optRecord;
+                //                if ( c > 0 )
+                //                {
+                //                    if ( auto optReflected = hitable->reflect( ray,
+                //                    point );
+                //                         optReflected )
+                //                    {
+                //                        return color * 0.25 + render( *optReflected, c -
+                //                        1 ) * 0.75;
+                //                    }
+                //                }
+                return color;
             }
-            return {};
-        };
-        std::ofstream ofs{ "/home/weining/work/tmp/out.ppm" };
-        Viewport v{ 200, 100 };
-        v.foreach (
-            //
-            [ & ]( auto x, auto y ) mutable -> Vec3 {
-                Ray ray{ { 0, 0, 0 }, { x, y, -9 } };
-                return render( ray, 3 );
-            } );
-        v.write( ofs );
-    }
+        }
+        return {};
+    };
+    std::ofstream ofs{ "/home/weining/work/tmp/out.ppm" };
+    Viewport v{ 200, 100, 4.0, 2.0 };
+    v.foreach (
+        //
+        [ & ]( const auto& ray ) mutable -> Vec3 { return render( ray, 3 ); } );
+    v.write( ofs );
 }
