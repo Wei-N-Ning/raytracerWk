@@ -155,12 +155,13 @@ struct Viewport
         static std::mt19937 eng{ std::random_device()() };
         static std::uniform_real_distribution< double > dist{ -0.01, 0.01 };
 
-        Vec3 lowerLeftCorner{ -2.0, -1.0, -1.0 };
+        Vec3 lowerLeftCorner{ -w / 2, -h / 2, -1.0 };
         Vec3 horizontal{ w, 0.0, 0.0 };
         Vec3 vertical{ 0.0, h, 0.0 };
-        Vec3 origin{ .0, .0, .0 };
+        Vec3 origin{};
 
-        for ( auto y = 0; y < yNumPixels; ++y )
+        size_t idx = 0;
+        for ( auto y = yNumPixels - 1; y >= 0; --y )
         {
             for ( auto x = 0; x < xNumPixels; ++x )
             {
@@ -169,7 +170,7 @@ struct Viewport
 
                 Vec3 color =
                     f( Ray{ origin, lowerLeftCorner + horizontal * u + vertical * v } );
-                pixels[ y * xNumPixels + x ] = color;
+                pixels[ idx++ ] = color;
             }
         }
     }
@@ -218,9 +219,9 @@ struct IHitable
 struct GradientBackground : IHitable
 {
     // [A]bove
-    Vec3 toneA{ 255, 0, 0 };
+    Vec3 toneA{ 1.0, 1.0, 1.0 };
     // [B]ottom
-    Vec3 toneB{ 0, 0, 255 };
+    Vec3 toneB{ 0.5, 0.7, 1.0 };
 
     GradientBackground() = default;
 
@@ -272,10 +273,10 @@ struct Sphere : IHitable
                                         double t_min,
                                         double t_max ) override
     {
-        Vec3 c_P = origin( in ) - center;
+        Vec3 c_P = origin( in ) - center;  // origin <- center
         Vec3 dir = direction( in );
         double a = dir * dir;
-        double b = 2.0f * ( c_P * dir );
+        double b = 2.0 * ( c_P * dir );
         double c = c_P * c_P - radius * radius;
         double discriminant = b * b - 4 * a * c;
         if ( discriminant < 0 )
@@ -283,20 +284,18 @@ struct Sphere : IHitable
             // no hit, discard this ray
             return std::nullopt;
         }
-        double t = ( -b - std::sqrt( discriminant ) ) / ( 2.0f * a );
-        if ( t < t_max && t > t_min )
+
+        auto t = ( -b - std::sqrt( discriminant ) ) / ( 2.0 * a );
+        if ( t < 0.0 )
         {
-            // the near hit point t is within (t_min, t_max)
-            return std::make_pair( color, at( in, t ) );
+            return std::nullopt;
         }
-        t = ( -b + std::sqrt( discriminant ) ) / ( 2.0f * a );
-        if ( t < t_max && t > t_min )
-        {
-            // the near hit point t is outside (t_min, t_max);
-            // find the second root to try to get the far hit point
-            return std::make_pair( color, at( in, t ) );
-        }
-        return std::nullopt;
+
+        Vec3 N = normalized( at( in, t ) - center );  // at() <- center
+        Vec3 col =
+            Vec3{ std::get< 0 >( N ) + 1, std::get< 1 >( N ) + 1, std::get< 2 >( N ) + 1 }
+            * 0.5;
+        return std::make_pair( col, Vec3{} );
     }
 
     std::optional< Ray > reflect( const Ray& in, const Vec3& point ) override
@@ -326,26 +325,19 @@ TEST_CASE( "hit-test sphere" )
 TEST_CASE( "render" )
 {
     std::vector< std::shared_ptr< IHitable > > hitables{
-        // std::make_shared< Sphere >( Vec3{ 0, 0, -3 }, 0.1 ),
+        std::make_shared< Sphere >( Vec3{ 0, 0, -1 }, 0.5 ),
         std::make_shared< GradientBackground >() };
-    std::function< Vec3( const Ray&, size_t ) > render = [ & ]( const Ray& ray,
-                                                                size_t c ) -> Vec3 {
+    std::function< Vec3( const Ray&, size_t ) > render
+        //
+        = [ & ]( const Ray& ray, size_t ) -> Vec3 {
         for ( const auto& hitable : hitables )
         {
             if ( auto optRecord = hitable->hitTest( ray, 0, 1 ); optRecord )
             {
-                const auto& [ color, point ] = *optRecord;
-                //                if ( c > 0 )
-                //                {
-                //                    if ( auto optReflected = hitable->reflect( ray,
-                //                    point );
-                //                         optReflected )
-                //                    {
-                //                        return color * 0.25 + render( *optReflected, c -
-                //                        1 ) * 0.75;
-                //                    }
-                //                }
-                return color;
+                const auto& [ color, _ ] = *optRecord;
+                return Vec3{ 255 * std::get< 0 >( color ),
+                             255 * std::get< 1 >( color ),
+                             255 * std::get< 2 >( color ) };
             }
         }
         return {};
