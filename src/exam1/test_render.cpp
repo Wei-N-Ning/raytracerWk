@@ -209,7 +209,7 @@ TEST_CASE( "test image io" )
               oss.str() );
 }
 
-using HitRecord = std::pair< Vec3, Vec3 >;  // color, p
+using HitRecord = std::pair< Vec3, Vec3 >;  // color, hitPoint, normal
 
 struct IHitable
 {
@@ -316,7 +316,8 @@ struct Sphere : IHitable
         }
 
         Vec3 N = normalized( at( in, t ) - center );  // at() <- center
-        Vec3 col{std::get<0>(N) + 1, std::get<1>(N) + 1, std::get<2>(N) + 1};
+        Vec3 col{
+            std::get< 0 >( N ) + 1, std::get< 1 >( N ) + 1, std::get< 2 >( N ) + 1 };
         return std::make_pair( col * 0.5, Vec3{} );
     }
 
@@ -344,24 +345,36 @@ TEST_CASE( "hit-test sphere" )
     }
 }
 
+using HitableCollection = std::vector< std::shared_ptr< IHitable > >;
+
+auto hitTest( const HitableCollection& coll, const Ray& in, double t_min, double t_max )
+    -> std::optional< HitRecord >
+{
+    for ( const auto& hitable : coll )
+    {
+        if ( auto optRecord = hitable->hitTest( in, 0, 1 ); optRecord )
+        {
+            // const auto& [ color, _ ] = *optRecord;
+            return optRecord;
+        }
+    }
+    return std::nullopt;
+}
+
 TEST_CASE( "render" )
 {
-    std::vector< std::shared_ptr< IHitable > > hitables{
-        std::make_shared< Sphere >( Vec3{ 0, 0, -1 }, 0.5 ),
-        std::make_shared< Sphere >( Vec3{ 0, -100.5, -1 }, 100 ),
-        std::make_shared< GradientBackground >() };
+    HitableCollection hitables{ std::make_shared< Sphere >( Vec3{ 0, 0, -1 }, 0.5 ),
+                                std::make_shared< Sphere >( Vec3{ 0, -100.5, -1 }, 100 ),
+                                std::make_shared< GradientBackground >() };
     std::function< Vec3( const Ray&, size_t ) > render
         //
         = [ & ]( const Ray& ray, size_t ) -> Vec3 {
-        for ( const auto& hitable : hitables )
+        if ( auto optRecord = hitTest( hitables, ray, 0, 1 ); optRecord )
         {
-            if ( auto optRecord = hitable->hitTest( ray, 0, 1 ); optRecord )
-            {
-                const auto& [ color, _ ] = *optRecord;
-                return Vec3{ 255 * std::get< 0 >( color ),
-                             255 * std::get< 1 >( color ),
-                             255 * std::get< 2 >( color ) };
-            }
+            const auto& [ color, _ ] = *optRecord;
+            return Vec3{ 255 * std::get< 0 >( color ),
+                         255 * std::get< 1 >( color ),
+                         255 * std::get< 2 >( color ) };
         }
         return {};
     };
