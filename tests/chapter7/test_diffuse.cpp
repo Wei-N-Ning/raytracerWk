@@ -42,7 +42,7 @@ RTWK::Vec3 randomInUnitSphere()
     // where x,y,z all range from -1, +1
     // we reject this point and try again if the point is outside the
     // sphere
-    static std::default_random_engine gen;
+    static std::mt19937 gen{ std::random_device()() };
     static std::uniform_real_distribution< float > dist( 0, 1 );
     do
     {
@@ -101,6 +101,6 @@ int main()
     ofs.open( "/tmp/diffuse.ppm" );
     assert( ofs.good() );
     RTWK::Camera camera;
-    RTWK::createImageCamAA( ofs, 200, 100, 8, camera, surfaceColor, true );
+    RTWK::createImageCamAA( ofs, 200, 100, 64, camera, surfaceColor, true );
     return 0;
 }

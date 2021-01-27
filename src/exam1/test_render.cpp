@@ -153,7 +153,7 @@ struct Viewport
     inline void foreach ( const std::function< Vec3( const Ray& ) >& f )
     {
         static std::mt19937 eng{ std::random_device()() };
-        static std::uniform_real_distribution< double > dist{ -0.01, 0.01 };
+        static std::uniform_real_distribution< double > dist{ -1, 1 };
 
         Vec3 lowerLeftCorner{ -w / 2, -h / 2, -1.0 };
         Vec3 horizontal{ w, 0.0, 0.0 };
@@ -161,16 +161,23 @@ struct Viewport
         Vec3 origin{};
 
         size_t idx = 0;
+        size_t numSamples = 32;
         for ( auto y = yNumPixels - 1; y >= 0; --y )
         {
             for ( auto x = 0; x < xNumPixels; ++x )
             {
-                double u = double( x ) / double( xNumPixels );
-                double v = double( y ) / double( yNumPixels );
+                Vec3 color{};
+                for ( auto s = 0; s < numSamples; ++s )
+                {
+                    double u = double( x + dist( eng ) ) / double( xNumPixels );
+                    double v = double( y + dist( eng ) ) / double( yNumPixels );
 
-                Vec3 color =
-                    f( Ray{ origin, lowerLeftCorner + horizontal * u + vertical * v } );
-                pixels[ idx++ ] = color;
+                    color = color
+                            + f( Ray{ origin,
+                                      lowerLeftCorner + horizontal * u + vertical * v } );
+                }
+
+                pixels[ idx++ ] = color / double( numSamples );
             }
         }
     }
@@ -259,6 +266,19 @@ TEST_CASE( "hit-test background" )
     }
 }
 
+Vec3 randomInUnitSphere()
+{
+    static std::mt19937 eng{ std::random_device()() };
+    static std::uniform_real_distribution< double > dist{ -1, 1 };
+    Vec3 p{};
+    Vec3 aim{ 1, 1, 1 };
+    do
+    {
+        p = Vec3{ dist( eng ), dist( eng ), dist( eng ) } - aim;
+    } while ( p * p >= 1.0 );
+    return p;
+}
+
 struct Sphere : IHitable
 {
     Vec3 center{};
@@ -266,6 +286,10 @@ struct Sphere : IHitable
     Vec3 color{ 150, 100, 100 };
 
     Sphere( const Vec3& v, double r ) : center( v ), radius( r )
+    {
+    }
+
+    Sphere( const Vec3& v, double r, Vec3 col ) : center( v ), radius( r ), color( col )
     {
     }
 
@@ -292,10 +316,8 @@ struct Sphere : IHitable
         }
 
         Vec3 N = normalized( at( in, t ) - center );  // at() <- center
-        Vec3 col =
-            Vec3{ std::get< 0 >( N ) + 1, std::get< 1 >( N ) + 1, std::get< 2 >( N ) + 1 }
-            * 0.5;
-        return std::make_pair( col, Vec3{} );
+        Vec3 col{std::get<0>(N) + 1, std::get<1>(N) + 1, std::get<2>(N) + 1};
+        return std::make_pair( col * 0.5, Vec3{} );
     }
 
     std::optional< Ray > reflect( const Ray& in, const Vec3& point ) override
@@ -326,6 +348,7 @@ TEST_CASE( "render" )
 {
     std::vector< std::shared_ptr< IHitable > > hitables{
         std::make_shared< Sphere >( Vec3{ 0, 0, -1 }, 0.5 ),
+        std::make_shared< Sphere >( Vec3{ 0, -100.5, -1 }, 100 ),
         std::make_shared< GradientBackground >() };
     std::function< Vec3( const Ray&, size_t ) > render
         //
