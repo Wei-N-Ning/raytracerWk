@@ -70,8 +70,9 @@ struct RangeLimit
 
 struct IHitable
 {
-    virtual std::optional< HitRecord > hitTest( const Ray& ray,
-                                                const RangeLimit& limit ) const = 0;
+    [[nodiscard]] virtual std::optional< HitRecord > hitTest(
+        const Ray& ray,
+        const RangeLimit& limit ) const = 0;
 };
 
 struct HitableList : public IHitable
