@@ -125,6 +125,11 @@ struct Renderer
     HitableList hitableList{};
     Pixel bgColor{ 1, 1, 1 };
 
+    Renderer() = default;
+    explicit Renderer( Pixel bg ) : bgColor( std::move( bg ) )
+    {
+    }
+
     void add( IHitable* ptr )
     {
         hitableList.add( ptr );
@@ -250,7 +255,7 @@ OptError ensure_it_generate_background_color()
 {
     ImageDriver id{ 300, 200, 16 };  // 3 : 2
     Sphere sphere{};
-    Renderer renderer{};
+    Renderer renderer{ Pixel( 0.5, 0.7, 1.0 ) };
     renderer.add( &sphere );
     if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
     {
