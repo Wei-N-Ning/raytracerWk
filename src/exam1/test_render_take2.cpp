@@ -10,6 +10,7 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <random>
 
 using Pixel = int;
 
@@ -19,6 +20,17 @@ using Vec3 = double;
 
 struct Camera
 {
+    double width{};
+    double height{};
+    Vec3 position{};
+    Vec3 lookAt{};
+    Vec3 up{};
+
+    Camera() = default;
+    Camera( double w, double h ) : width( w ), height( h )
+    {
+    }
+
     [[nodiscard]] Ray getRay( double u, double v ) const
     {
         return {};
@@ -97,6 +109,14 @@ struct HitableList : public IHitable
 
 struct Sphere : public IHitable
 {
+    Vec3 center{};
+    double radius{};
+
+    Sphere() = default;
+    Sphere( Vec3 c, double r ) : center( std::move( c ) ), radius( r )
+    {
+    }
+
     [[nodiscard]] std::optional< HitRecord > hitTest(
         const Ray& ray,
         const RangeLimit& limit ) const override
@@ -149,6 +169,20 @@ struct ImageDriver
     int yNumPixels{ 4 };
     size_t subSamples{ 1 };
 
+    std::mt19937 eng{ std::random_device()() };
+    std::uniform_real_distribution< double > dist{ 0, 1 };
+
+    ImageDriver() = default;
+    ImageDriver( int x, int y, int subs )
+        : xNumPixels( x ), yNumPixels( y ), subSamples( subs )
+    {
+    }
+
+    inline double randomOffset()
+    {
+        return dist( eng );
+    }
+
     Status drive( const Camera& cam, const Renderer& ren )
     {
         pixels.resize( xNumPixels * yNumPixels );
@@ -159,8 +193,8 @@ struct ImageDriver
                 Pixel pixel{};
                 for ( auto ss = 0; ss < subSamples; ++ss )
                 {
-                    double u = double( x /*with random offset*/ ) / double( xNumPixels );
-                    double v = double( y /*with random offset*/ ) / double( yNumPixels );
+                    double u = double( x + randomOffset() ) / double( xNumPixels );
+                    double v = double( y + randomOffset() ) / double( yNumPixels );
                     pixel += ren.render( cam.getRay( u, v ) );
                 }
                 pixels[ x + y * xNumPixels ] =
@@ -196,11 +230,36 @@ TEST_CASE( "ensure it compiles" )
     renderer.add( &sphere );
     if ( auto status = id.drive( Camera{}, renderer ); status )
     {
+        std::string expected{ R"(P3
+4 4
+255
+42 42 42 42
+42 42 42 42
+42 42 42 42
+42 42 42 42
+)" };
         id.output( oss );
-        std::cout << oss.str() << '\n';
+        CHECK_EQ( expected, oss.str() );
     }
     else
     {
-        std::cout << "failed to render\n";
+        FAIL( "failed to render" );
+    }
+}
+
+TEST_CASE( "ensure it generate background color" )
+{
+    ImageDriver id{ 300, 200, 16 };  // 3 : 2
+    Sphere sphere{};
+    Renderer renderer{};
+    renderer.add( &sphere );
+    if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
+    {
+        std::ofstream ofs{ "/tmp/out.ppm" };
+        id.output( ofs );
+    }
+    else
+    {
+        FAIL( "failed to render" );
     }
 }
