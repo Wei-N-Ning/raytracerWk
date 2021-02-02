@@ -6,11 +6,15 @@
 
 #include <cassert>
 
-void test_creation() {
+void test_creation()
+{
     Vec3 xyz{};
+    Pixel rgb{};
+    Ray ray{ Vec3{}, Vec3{} };
 }
 
-int main() {
+int main()
+{
     test_creation();
     return 0;
 }

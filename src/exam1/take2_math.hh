@@ -11,6 +11,8 @@
 
 using Vec3 = std::array< double, 3 >;
 
+using Pixel = Vec3;
+
 template < typename ElementOp >
 inline Vec3 binaryOp( const Vec3& a, const Vec3& b ) noexcept
 {
@@ -72,15 +74,8 @@ inline Vec3 normalized( const Vec3& v ) noexcept
 // ray(t) = A + B * t
 using Ray = std::pair< Vec3, Vec3 >;
 
-inline Vec3 origin( const Ray& r ) noexcept
-{
-    return r.first;
-}
-
-inline Vec3 direction( const Ray& r ) noexcept
-{
-    return r.second;
-}
+// use structured binding to access origin and direction:
+// auto &[orig, dir] = ray;
 
 inline Vec3 at( const Ray& r, double t ) noexcept
 {
