@@ -12,9 +12,9 @@
 
 using Vec3 = std::tuple< double, double, double >;
 
-using Pixel = Vec3;
+using Color = Vec3;
 
-std::ostream& operator<<( std::ostream& os, const Pixel& pix )
+std::ostream& operator<<( std::ostream& os, const Color& pix )
 {
     const auto& [ r, g, b ] = pix;
     auto ri = int( 255.99 * r );

@@ -11,7 +11,7 @@
 void test_creation()
 {
     Vec3 xyz{};
-    Pixel rgb{};
+    Color rgb{};
     Ray ray{ Vec3{}, Vec3{} };
 }
 
@@ -98,7 +98,7 @@ void test_ray_function()
 }
 
 void test_pixel_io_function() {
-    Pixel pix{1, 1, 1};
+    Color pix{1, 1, 1};
     {
         // write to ostream
         std::ostringstream oss;

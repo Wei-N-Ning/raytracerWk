@@ -15,20 +15,30 @@
 
 struct Camera
 {
-    double width{};
-    double height{};
-    Vec3 position{};
+    double width;
+    double height;
+    Vec3 position{0, 0, 0};
     Vec3 lookAt{};
     Vec3 up{};
+    Vec3 lowerLeftCorner{};
+    Vec3 horizontal{};
+    Vec3 vertical{};
 
-    Camera() = default;
-    Camera( double w, double h ) : width( w ), height( h )
+    Camera( double w, double h )
+        : width( w )
+        , height( h )
+        , lowerLeftCorner( -w / 2, -h / 2, -1.0 )
+        , horizontal( w, 0, 0 )
+        , vertical( 0, h, 0 )
     {
     }
 
     [[nodiscard]] Ray getRay( double u, double v ) const
     {
-        return {};
+        return Ray(
+            //
+            position,
+            lowerLeftCorner + horizontal * u + vertical * v - position );
     }
 };
 
@@ -121,13 +131,36 @@ struct Sphere : public IHitable
     }
 };
 
+struct DualTone
+{
+    Color a{ 1, 1, 1 };
+    Color b{ 1, 1, 1 };
+
+    DualTone() = default;
+    DualTone( Color c1, Color c2 ) : a( std::move( c1 ) ), b( std::move( c2 ) )
+    {
+    }
+
+    [[nodiscard]] Color operator()( const Ray& ray ) const
+    {
+        const auto& [ _orig, dir ] = ray;
+        auto dirN = normalized( dir );
+        const auto& [ _x, y, _z ] = dirN;
+        double t = ( y + 1.0 ) * 0.5;  // [0.0, 1.0]
+        return a * ( 1 - t ) + b * t;
+    }
+};
+
 struct Renderer
 {
     HitableList hitableList{};
-    Pixel bgColor{ 1, 1, 1 };
+    std::function< Color( const Ray& ) > bgColorGenerator{ []( const Ray& ) -> Color {
+        return { 1, 1, 1 };
+    } };
 
     Renderer() = default;
-    explicit Renderer( Pixel bg ) : bgColor( std::move( bg ) )
+    explicit Renderer( std::function< Color( const Ray& ) > f )
+        : bgColorGenerator( std::move( f ) )
     {
     }
 
@@ -136,12 +169,7 @@ struct Renderer
         hitableList.add( ptr );
     }
 
-    [[nodiscard]] Pixel generateBackgroundColor( const Ray& ray ) const
-    {
-        return bgColor;
-    }
-
-    [[nodiscard]] Pixel render( const Ray& ray ) const
+    [[nodiscard]] Color render( const Ray& ray ) const
     {
         RangeLimit limit{ 0, 10000000 };
         if ( auto optRecord = hitableList.hitTest( ray, limit ); optRecord )
@@ -158,7 +186,7 @@ struct Renderer
                 return {};  // absorbed, black hole
             }
         }
-        return generateBackgroundColor( ray );
+        return bgColorGenerator( ray );
     }
 };
 
@@ -166,7 +194,7 @@ using Status = bool;
 
 struct ImageDriver
 {
-    std::vector< Pixel > pixels{};
+    std::vector< Color > pixels{};
     int xNumPixels{ 4 };
     int yNumPixels{ 4 };
     size_t subSamples{ 1 };
@@ -192,7 +220,7 @@ struct ImageDriver
         {
             for ( auto x = 0; x < xNumPixels; ++x )
             {
-                Pixel pixel{};
+                Color pixel{};
                 for ( auto ss = 0; ss < subSamples; ++ss )
                 {
                     double u = double( x + randomOffset() ) / double( xNumPixels );
@@ -206,7 +234,7 @@ struct ImageDriver
         return true;
     }
 
-    [[nodiscard]] Pixel postProcess( Pixel pixel ) const
+    [[nodiscard]] Color postProcess( Color pixel ) const
     {
         return pixel;
     }
@@ -232,7 +260,7 @@ OptError ensure_it_compiles()
     Sphere sphere{};
     Renderer renderer{};
     renderer.add( &sphere );
-    if ( auto status = id.drive( Camera{}, renderer ); status )
+    if ( auto status = id.drive( Camera{ 1, 1 }, renderer ); status )
     {
         std::string expected{ R"(P3
 4 4
@@ -256,7 +284,7 @@ OptError ensure_it_generate_background_color()
 {
     ImageDriver id{ 300, 200, 16 };  // 3 : 2
     Sphere sphere{};
-    Renderer renderer{ Pixel( 0.5, 0.7, 1.0 ) };
+    Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
     renderer.add( &sphere );
     if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
     {
