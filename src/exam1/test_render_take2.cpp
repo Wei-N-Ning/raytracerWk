@@ -2,6 +2,8 @@
 // Created by weining on 28/1/21.
 //
 
+#include "take2_math.hh"
+
 #include <vector>
 #include <fstream>
 #include <sstream>
@@ -10,12 +12,6 @@
 #include <random>
 #include <cassert>
 #include <algorithm>
-
-using Pixel = int;
-
-using Ray = double;
-
-using Vec3 = double;
 
 struct Camera
 {
@@ -135,7 +131,7 @@ struct Renderer
 
     [[nodiscard]] Pixel generateBackgroundColor( const Ray& ray ) const
     {
-        return 42;
+        return {100, 100, 100};
     }
 
     [[nodiscard]] Pixel render( const Ray& ray ) const
@@ -148,7 +144,7 @@ struct Renderer
                  optScaRecord )
             {
                 const auto& scatterRecord = *optScaRecord;
-                return scatterRecord.attenuation * render( scatterRecord.ray );
+                return render( scatterRecord.ray ) * scatterRecord.attenuation;
             }
             else
             {
@@ -194,7 +190,7 @@ struct ImageDriver
                 {
                     double u = double( x + randomOffset() ) / double( xNumPixels );
                     double v = double( y + randomOffset() ) / double( yNumPixels );
-                    pixel += ren.render( cam.getRay( u, v ) );
+                    pixel = pixel + ren.render( cam.getRay( u, v ) );
                 }
                 pixels[ x + y * xNumPixels ] =
                     postProcess( pixel / double( subSamples ) );

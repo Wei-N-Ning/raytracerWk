@@ -47,8 +47,20 @@ void test_vec_to_vec_op()
         assert( x == -1 && y == -1 && z == -1 );
     }
     {
+        // multiply
+        Vec3 o = Vec3{ 2, 2, 2 } * Vec3( 3, 3, 3 );
+        const auto& [ x, y, z ] = o;
+        assert( x == 6 && y == 6 && z == 6 );
+    }
+    {
+        // div
+        Vec3 o = Vec3{ 2, 2, 2 } / Vec3( 2, 2, 2 );
+        const auto& [ x, y, z ] = o;
+        assert( x == 1 && y == 1 && z == 1 );
+    }
+    {
         // dot
-        auto o = Vec3{ 1, 0, 0 } * Vec3{ 0, 1, 0 };
+        auto o = dot( Vec3{ 1, 0, 0 }, Vec3{ 0, 1, 0 } );
         assert( o == 0 );
     }
     {

@@ -40,12 +40,14 @@ inline Vec3 operator-( const Vec3& a, const Vec3& b ) noexcept
     return binaryOp< std::minus< double > >( a, b );
 }
 
-// this is the dot product
-inline double operator*( const Vec3& a, const Vec3& b ) noexcept
+inline Vec3 operator*( const Vec3& a, const Vec3& b ) noexcept
 {
-    const auto& [ a1, a2, a3 ] = a;
-    const auto& [ b1, b2, b3 ] = b;
-    return a1 * b1 + a2 * b2 + a3 * b3;
+    return binaryOp< std::multiplies< double > >( a, b );
+}
+
+inline Vec3 operator/( const Vec3& a, const Vec3& b ) noexcept
+{
+    return binaryOp< std::divides< double > >( a, b );
 }
 
 inline Vec3 operator*( const Vec3& a, double b ) noexcept
@@ -56,6 +58,13 @@ inline Vec3 operator*( const Vec3& a, double b ) noexcept
 inline Vec3 operator/( const Vec3& a, double b ) noexcept
 {
     return binaryOp< std::divides< double > >( a, b );
+}
+
+inline double dot( const Vec3& a, const Vec3& b ) noexcept
+{
+    const auto& [ a1, a2, a3 ] = a;
+    const auto& [ b1, b2, b3 ] = b;
+    return a1 * b1 + a2 * b2 + a3 * b3;
 }
 
 inline Vec3 cross( const Vec3& a, const Vec3& b ) noexcept
