@@ -5,11 +5,11 @@
 #ifndef RAYTRACERWEEKEND_TAKE2_MATH_HH
 #define RAYTRACERWEEKEND_TAKE2_MATH_HH
 
-#include <array>
+#include <tuple>
 #include <functional>
 #include <cmath>
 
-using Vec3 = std::array< double, 3 >;
+using Vec3 = std::tuple< double, double, double >;
 
 using Pixel = Vec3;
 
@@ -17,14 +17,17 @@ template < typename ElementOp >
 inline Vec3 binaryOp( const Vec3& a, const Vec3& b ) noexcept
 {
     ElementOp op{};
-    return Vec3{ op( a[ 0 ], b[ 0 ] ), op( a[ 1 ], b[ 1 ] ), op( a[ 2 ], b[ 2 ] ) };
+    const auto& [ a1, a2, a3 ] = a;
+    const auto& [ b1, b2, b3 ] = b;
+    return Vec3{ op( a1, b1 ), op( a2, b2 ), op( a3, b3 ) };
 }
 
 template < typename ElementOp >
 inline Vec3 binaryOp( const Vec3& a, double b ) noexcept
 {
     ElementOp op{};
-    return Vec3{ op( a[ 0 ], b ), op( a[ 1 ], b ), op( a[ 2 ], b ) };
+    const auto& [ a1, a2, a3 ] = a;
+    return Vec3{ op( a1, b ), op( a2, b ), op( a3, b ) };
 }
 
 inline Vec3 operator+( const Vec3& a, const Vec3& b ) noexcept
@@ -40,7 +43,9 @@ inline Vec3 operator-( const Vec3& a, const Vec3& b ) noexcept
 // this is the dot product
 inline double operator*( const Vec3& a, const Vec3& b ) noexcept
 {
-    return a[ 0 ] * b[ 0 ] + a[ 1 ] * b[ 1 ] + a[ 2 ] * b[ 2 ];
+    const auto& [ a1, a2, a3 ] = a;
+    const auto& [ b1, b2, b3 ] = b;
+    return a1 * b1 + a2 * b2 + a3 * b3;
 }
 
 inline Vec3 operator*( const Vec3& a, double b ) noexcept
@@ -55,20 +60,22 @@ inline Vec3 operator/( const Vec3& a, double b ) noexcept
 
 inline Vec3 cross( const Vec3& a, const Vec3& b ) noexcept
 {
-    return Vec3{ a[ 1 ] * b[ 2 ] - a[ 2 ] * b[ 1 ],
-                 a[ 2 ] * b[ 0 ] - a[ 0 ] * b[ 2 ],
-                 a[ 0 ] * b[ 1 ] - a[ 1 ] * b[ 0 ] };
+    const auto& [ a0, a1, a2 ] = a;
+    const auto& [ b0, b1, b2 ] = b;
+    return Vec3{ a1 * b2 - a2 * b1, a2 * b0 - a0 * b2, a0 * b1 - a1 * b0 };
 }
 
 inline double length( const Vec3& v ) noexcept
 {
-    return std::sqrt( v[ 0 ] * v[ 0 ] + v[ 1 ] * v[ 1 ] + v[ 2 ] * v[ 2 ] );
+    const auto& [ v0, v1, v2 ] = v;
+    return std::sqrt( v0 * v0 + v1 * v1 + v2 * v2 );
 }
 
 inline Vec3 normalized( const Vec3& v ) noexcept
 {
     auto l = length( v );
-    return Vec3{ v[ 0 ] / l, v[ 1 ] / l, v[ 2 ] / l };
+    const auto& [ v0, v1, v2 ] = v;
+    return Vec3{ v0 / l, v1 / l, v2 / l };
 }
 
 // ray(t) = A + B * t
