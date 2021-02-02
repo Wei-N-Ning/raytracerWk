@@ -74,6 +74,7 @@ struct HitRecord
     double t{};
 };
 
+// NOTE: had a bug in the scattered() method
 struct Lambertian : public IMaterial
 {
     std::optional< ScatterRecord > scattered( const Ray& in,
@@ -142,6 +143,8 @@ struct HitableList : public IHitable
     }
 };
 
+// NOTE: had two major bugs in the hitTest() method - worth rewriting it with more unit
+//       tests!
 struct Sphere : public IHitable
 {
     Vec3 center{};
@@ -356,14 +359,14 @@ OptError ensure_it_generate_background_color()
 
 OptError ensure_it_renders_single_sphere()
 {
-    ImageDriver id{ 200, 100, 16 };  // 3 : 2
+    ImageDriver id{ 300, 200, 64 };  // 3 : 2
     Lambertian diffuse{};
     Sphere sphere{ Vec3{ 0, 0, -1 }, 0.5, &diffuse };
     Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuse };
     Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
     renderer.add( &sphere );
     renderer.add( &base );
-    if ( auto status = id.drive( Camera{ 4.0, 2.0 }, renderer ); status )
+    if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
     {
         std::ofstream ofs{ "/tmp/1sphere.ppm" };
         id.output( ofs );
