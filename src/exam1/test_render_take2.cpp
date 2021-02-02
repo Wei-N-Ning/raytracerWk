@@ -145,6 +145,10 @@ struct HitableList : public IHitable
 
 // NOTE: had two major bugs in the hitTest() method - worth rewriting it with more unit
 //       tests!
+// a better explanation of the intersection formula
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
+// | O + tD | ^ 2 − R2 = 0
+// O, D are position and direction vectors
 struct Sphere : public IHitable
 {
     Vec3 center{};
