@@ -27,7 +27,7 @@ struct Camera
     Camera( double w, double h )
         : width( w )
         , height( h )
-        , lowerLeftCorner( -w / 2, -h / 2, -1.0 )
+        , lowerLeftCorner( w / -2.0, h / -2.0, -1.0 )
         , horizontal( w, 0, 0 )
         , vertical( 0, h, 0 )
     {
@@ -74,7 +74,7 @@ struct HitRecord
     double t{};
 };
 
-struct Diffuse : public IMaterial
+struct Lambertian : public IMaterial
 {
     std::optional< ScatterRecord > scattered( const Ray& in,
                                               const HitRecord& hitRecord ) override
@@ -120,7 +120,7 @@ struct HitableList : public IHitable
 
     void add( IHitable* ptr )
     {
-        pHitables.emplace_back( ptr );
+        pHitables.push_back( ptr );
     }
 
     [[nodiscard]] std::optional< HitRecord > hitTest(
@@ -129,7 +129,7 @@ struct HitableList : public IHitable
     {
         std::optional< HitRecord > ret{};
         RangeLimit li{ limit };
-        for ( const auto& pHitable : pHitables )
+        for ( auto pHitable : pHitables )
         {
             if ( auto optRecord = pHitable->hitTest( ray, li ); optRecord )
             {
@@ -172,7 +172,7 @@ struct Sphere : public IHitable
         {
             return std::nullopt;
         }
-        double t = ( -b - std::sqrt( discriminant ) ) / a * 2.0;
+        double t = ( -b - std::sqrt( discriminant ) ) / ( 2.0 * a );
         if ( t < limit.max && t > limit.min )
         {
             Vec3 hitPoint = at( ray, t );
@@ -238,6 +238,10 @@ struct Renderer
                 const auto& scatterRecord = *optScaRecord;
                 return render( scatterRecord.ray ) * scatterRecord.attenuation;
             }
+            else
+            {
+                return { 0, 0, 0 };
+            }
         }
         return bgColorGenerator( ray );
     }
@@ -289,7 +293,8 @@ struct ImageDriver
 
     [[nodiscard]] Color postProcess( Color pixel ) const
     {
-        return pixel;
+        const auto& [ r, g, b ] = pixel;
+        return Vec3( std::sqrt( r ), std::sqrt( g ), std::sqrt( b ) );
     }
 
     std::ostream& output( std::ostream& os ) const
@@ -335,9 +340,9 @@ OptError ensure_it_compiles()
 
 OptError ensure_it_generate_background_color()
 {
-    ImageDriver id{ 300, 200, 16 };  // 3 : 2
+    ImageDriver id{ 100, 50, 2 };
     Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
-    if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
+    if ( auto status = id.drive( Camera{ 4.0, 2.0 }, renderer ); status )
     {
         std::ofstream ofs{ "/tmp/out.ppm" };
         id.output( ofs );
@@ -352,7 +357,7 @@ OptError ensure_it_generate_background_color()
 OptError ensure_it_renders_single_sphere()
 {
     ImageDriver id{ 200, 100, 16 };  // 3 : 2
-    Diffuse diffuse{};
+    Lambertian diffuse{};
     Sphere sphere{ Vec3{ 0, 0, -1 }, 0.5, &diffuse };
     Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuse };
     Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
@@ -372,14 +377,14 @@ OptError ensure_it_renders_single_sphere()
 
 int main()
 {
-    //    if ( auto err = ensure_it_compiles(); err )
-    //    {
-    //        assert( false );
-    //    }
-    //    if ( auto err = ensure_it_generate_background_color(); err )
-    //    {
-    //        assert( false );
-    //    }
+    if ( auto err = ensure_it_compiles(); err )
+    {
+        assert( false );
+    }
+    if ( auto err = ensure_it_generate_background_color(); err )
+    {
+        assert( false );
+    }
     if ( auto err = ensure_it_renders_single_sphere(); err )
     {
         assert( false );
