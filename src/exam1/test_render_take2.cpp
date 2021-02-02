@@ -2,15 +2,14 @@
 // Created by weining on 28/1/21.
 //
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest/doctest.h"
-
 #include <vector>
-#include <ostream>
-#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <memory>
 #include <optional>
 #include <random>
+#include <cassert>
+#include <algorithm>
 
 using Pixel = int;
 
@@ -221,7 +220,9 @@ struct ImageDriver
     }
 };
 
-TEST_CASE( "ensure it compiles" )
+using OptError = std::optional< std::string >;
+
+OptError ensure_it_compiles()
 {
     std::ostringstream oss;
     ImageDriver id;
@@ -239,15 +240,16 @@ TEST_CASE( "ensure it compiles" )
 42 42 42 42
 )" };
         id.output( oss );
-        CHECK_EQ( expected, oss.str() );
+        assert( expected == oss.str() );
+        return std::nullopt;
     }
     else
     {
-        FAIL( "failed to render" );
+        return "failed to render dummy image to text";
     }
 }
 
-TEST_CASE( "ensure it generate background color" )
+OptError ensure_it_generate_background_color()
 {
     ImageDriver id{ 300, 200, 16 };  // 3 : 2
     Sphere sphere{};
@@ -257,9 +259,23 @@ TEST_CASE( "ensure it generate background color" )
     {
         std::ofstream ofs{ "/tmp/out.ppm" };
         id.output( ofs );
+        return std::nullopt;
     }
     else
     {
-        FAIL( "failed to render" );
+        return "failed to render background color to file";
     }
+}
+
+int main()
+{
+    if ( auto err = ensure_it_compiles(); err )
+    {
+        assert( false );
+    }
+    if ( auto err = ensure_it_generate_background_color(); err )
+    {
+        assert( false );
+    }
+    return 0;
 }
