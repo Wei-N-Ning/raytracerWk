@@ -123,6 +123,7 @@ struct Sphere : public IHitable
 struct Renderer
 {
     HitableList hitableList{};
+    Pixel bgColor{ 1, 1, 1 };
 
     void add( IHitable* ptr )
     {
@@ -131,7 +132,7 @@ struct Renderer
 
     [[nodiscard]] Pixel generateBackgroundColor( const Ray& ray ) const
     {
-        return {100, 100, 100};
+        return bgColor;
     }
 
     [[nodiscard]] Pixel render( const Ray& ray ) const
@@ -230,10 +231,10 @@ OptError ensure_it_compiles()
         std::string expected{ R"(P3
 4 4
 255
-42 42 42 42
-42 42 42 42
-42 42 42 42
-42 42 42 42
+255 255 255 255 255 255 255 255 255 255 255 255
+255 255 255 255 255 255 255 255 255 255 255 255
+255 255 255 255 255 255 255 255 255 255 255 255
+255 255 255 255 255 255 255 255 255 255 255 255
 )" };
         id.output( oss );
         assert( expected == oss.str() );

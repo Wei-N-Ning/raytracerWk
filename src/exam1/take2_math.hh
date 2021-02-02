@@ -8,10 +8,20 @@
 #include <tuple>
 #include <functional>
 #include <cmath>
+#include <ostream>
 
 using Vec3 = std::tuple< double, double, double >;
 
 using Pixel = Vec3;
+
+std::ostream& operator<<( std::ostream& os, const Pixel& pix )
+{
+    const auto& [ r, g, b ] = pix;
+    auto ri = int( 255.99 * r );
+    auto gi = int( 255.99 * g );
+    auto bi = int( 255.99 * b );
+    return os << ri << ' ' << gi << ' ' << bi;
+}
 
 template < typename ElementOp >
 inline Vec3 binaryOp( const Vec3& a, const Vec3& b ) noexcept

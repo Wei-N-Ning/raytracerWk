@@ -6,6 +6,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <sstream>
 
 void test_creation()
 {
@@ -96,6 +97,16 @@ void test_ray_function()
     }
 }
 
+void test_pixel_io_function() {
+    Pixel pix{1, 1, 1};
+    {
+        // write to ostream
+        std::ostringstream oss;
+        oss << pix;
+        assert(oss.str() == "255 255 255");
+    }
+}
+
 int main()
 {
     test_creation();
@@ -103,5 +114,6 @@ int main()
     test_vec_to_vec_op();
     test_vec_unary_op();
     test_ray_function();
+    test_pixel_io_function();
     return 0;
 }
