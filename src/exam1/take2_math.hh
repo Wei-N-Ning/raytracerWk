@@ -90,6 +90,12 @@ inline double length( const Vec3& v ) noexcept
     return std::sqrt( v0 * v0 + v1 * v1 + v2 * v2 );
 }
 
+inline double squareLength( const Vec3& v ) noexcept
+{
+    const auto& [ v0, v1, v2 ] = v;
+    return v0 * v0 + v1 * v1 + v2 * v2;
+}
+
 inline Vec3 normalized( const Vec3& v ) noexcept
 {
     auto l = length( v );
