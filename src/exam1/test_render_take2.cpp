@@ -15,8 +15,16 @@
 
 struct Camera
 {
+    enum Optics
+    {
+        FOV
+    };
+
     double width;
+    double halfWidth{};
     double height;
+    double halfHeight{};
+
     Vec3 position{ 0, 0, 0 };
     Vec3 lookAt{};
     Vec3 up{};
@@ -31,6 +39,20 @@ struct Camera
         , horizontal( w, 0, 0 )
         , vertical( 0, h, 0 )
     {
+    }
+
+    Camera( Optics, double vFov, double aspect )
+    {
+        double theta = vFov * M_PI / 180.0;
+        //   _|
+        //  ^^ 1.0
+        halfHeight = std::tan( theta / 2 );
+        halfWidth = aspect * halfHeight;
+        height = 2 * halfHeight;
+        width = 2 * halfWidth;
+        lowerLeftCorner = Vec3{ -halfWidth, -halfHeight, -1.0 };
+        horizontal = Vec3{ width, 0, 0 };
+        vertical = Vec3{ 0, height, 0 };
     }
 
     [[nodiscard]] Ray getRay( double u, double v ) const  // u, v is in the [0, 1] space
@@ -566,7 +588,9 @@ OptError ensure_refraction_and_glass_surface()
 
 OptError ensure_camera_has_fov()
 {
-    ImageDriver id{ 300, 200, 1 };  // 3 : 2
+    constexpr int x = 300;
+    constexpr int y = 200;
+    ImageDriver id{ x, y, 1 };
     Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
     Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
     Lambertian diffuseGrey{};
@@ -579,7 +603,8 @@ OptError ensure_camera_has_fov()
     renderer.add( &s2 );
     renderer.add( &s3 );
     renderer.add( &base );
-    if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
+    Camera camera{ Camera::FOV, 60, double( x ) / double( y ) };
+    if ( auto status = id.drive( camera, renderer ); status )
     {
         std::ofstream ofs{ "/tmp/3fov.ppm" };
         id.output( ofs );
