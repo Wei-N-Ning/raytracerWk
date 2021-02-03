@@ -15,10 +15,10 @@
 
 struct Camera
 {
-    enum Optics
-    {
-        FOV
-    };
+    template < int >
+    using _label = bool;
+    using FOV = _label< 1 >;
+    using ORIENTATION = _label< 2 >;
 
     double width;
     double halfWidth{};
@@ -26,8 +26,8 @@ struct Camera
     double halfHeight{};
 
     Vec3 position{ 0, 0, 0 };
-    Vec3 lookAt{};
-    Vec3 up{};
+    Vec3 lookAt{ 0, 0, -1 };
+    Vec3 up{ 0, 1, 0 };
     Vec3 lowerLeftCorner{};
     Vec3 horizontal{};
     Vec3 vertical{};
@@ -41,7 +41,7 @@ struct Camera
     {
     }
 
-    Camera( Optics, double vFov, double aspect )
+    Camera( FOV, double vFov, double aspect )
     {
         double theta = vFov * M_PI / 180.0;
         //   _|
@@ -53,6 +53,26 @@ struct Camera
         lowerLeftCorner = Vec3{ -halfWidth, -halfHeight, -1.0 };
         horizontal = Vec3{ width, 0, 0 };
         vertical = Vec3{ 0, height, 0 };
+    }
+
+    Camera( ORIENTATION, double vFov, double aspect, Vec3 position, Vec3 lookAt, Vec3 up )
+    {
+        Vec3 u, v, w;
+        // camera faces -w;
+        double theta = vFov * M_PI / 180.0;
+        halfHeight = std::tan( theta / 2 );
+        halfWidth = aspect * halfHeight;
+        height = 2 * halfHeight;
+        width = 2 * halfWidth;
+
+        this->position = position;
+        w = normalized( position - lookAt );
+        u = normalized( cross( up, w ) );
+        v = cross( w, u );
+
+        lowerLeftCorner = position - u * halfWidth - v * halfHeight - w;
+        horizontal = u * width;
+        vertical = v * height;
     }
 
     [[nodiscard]] Ray getRay( double u, double v ) const  // u, v is in the [0, 1] space
@@ -590,12 +610,13 @@ OptError ensure_camera_has_fov()
 {
     constexpr int x = 300;
     constexpr int y = 200;
-    ImageDriver id{ x, y, 1 };
+    ImageDriver id{ x, y, 8 };
     Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
     Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
     Lambertian diffuseGrey{};
+    Metal metal{ { 0.9, 0.9, 0.9 }, 0.1 };
     Sphere s1{ Vec3{ -0.6 - 0.3, -0.2, -1 }, 0.3, &diffuseBlue };
-    Sphere s2{ Vec3{ 0, 0, -1 }, 0.5, &diffuseGrey };
+    Sphere s2{ Vec3{ 0, 0, -1 }, 0.5, &metal };
     Sphere s3{ Vec3{ 0.6 + 0.3, -0.2, -1 }, 0.3, &diffuseRed };
     Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuseGrey };
     Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
@@ -603,7 +624,13 @@ OptError ensure_camera_has_fov()
     renderer.add( &s2 );
     renderer.add( &s3 );
     renderer.add( &base );
-    Camera camera{ Camera::FOV, 60, double( x ) / double( y ) };
+    Camera camera{ //
+                   Camera::ORIENTATION{},
+                   45,
+                   double( x ) / double( y ),
+                   Vec3{ -2, 2, 1 },
+                   Vec3{ 0, 0, -1 },
+                   Vec3( 0, 1, 0 ) };
     if ( auto status = id.drive( camera, renderer ); status )
     {
         std::ofstream ofs{ "/tmp/3fov.ppm" };
