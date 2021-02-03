@@ -9,6 +9,7 @@
 #include <functional>
 #include <cmath>
 #include <ostream>
+#include <optional>
 
 using Vec3 = std::tuple< double, double, double >;
 
@@ -144,6 +145,11 @@ inline double schlick( double cosine, double ref_idx )
     double r0 = ( 1 - ref_idx ) / ( 1 + ref_idx );
     r0 = r0 * r0;
     return r0 + ( 1 - r0 ) * std::pow( ( 1 - cosine ), 5 );
+}
+
+inline bool intersect( const Ray& r, const Vec3& position, double radius ) noexcept
+{
+    return false;
 }
 
 #endif  // RAYTRACERWEEKEND_TAKE2_MATH_HH
