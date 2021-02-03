@@ -138,6 +138,15 @@ struct Metal : public IMaterial
     }
 };
 
+struct Dielectrics : public IMaterial
+{
+    std::optional< ScatterRecord > scattered( const Ray& in,
+                                              const HitRecord& hitRecord ) override
+    {
+        return {};
+    }
+};
+
 struct RangeLimit
 {
     double min{};
@@ -399,7 +408,7 @@ OptError ensure_it_compiles()
 
 OptError ensure_it_generate_background_color()
 {
-    ImageDriver id{ 100, 50, 2 };
+    ImageDriver id{ 100, 50, 1 };
     Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
     if ( auto status = id.drive( Camera{ 4.0, 2.0 }, renderer ); status )
     {
@@ -436,7 +445,7 @@ OptError ensure_it_renders_single_sphere()
 
 OptError ensure_reflection_multiple_sphere()
 {
-    ImageDriver id{ 300, 200, 16 };  // 3 : 2
+    ImageDriver id{ 300, 200, 1 };  // 3 : 2
     Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
     Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
     Lambertian diffuseGrey{};
@@ -462,6 +471,34 @@ OptError ensure_reflection_multiple_sphere()
     }
 }
 
+OptError ensure_refraction_and_glass_surface()
+{
+    ImageDriver id{ 300, 200, 8 };  // 3 : 2
+    Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
+    Lambertian diffuseGrey{};
+    Metal metal{ { 1.0, 0.8, 0.7 }, 0.1 };
+    Dielectrics dielectrics{};
+    Sphere s1{ Vec3{ -0.6 - 0.3, -0.2, -1 }, 0.3, &diffuseBlue };
+    Sphere s2{ Vec3{ 0, 0, -1 }, 0.5, &dielectrics };
+    Sphere s3{ Vec3{ 0.6 + 0.3, -0.2, -1 }, 0.3, &metal };
+    Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuseGrey };
+    Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
+    renderer.add( &s1 );
+    renderer.add( &s2 );
+    renderer.add( &s3 );
+    renderer.add( &base );
+    if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
+    {
+        std::ofstream ofs{ "/tmp/3glass.ppm" };
+        id.output( ofs );
+        return std::nullopt;
+    }
+    else
+    {
+        return "failed to render glass, metal and rubber sphere to file";
+    }
+}
+
 int main()
 {
     if ( auto err = ensure_it_compiles(); err )
@@ -477,6 +514,10 @@ int main()
         assert( false );
     }
     if ( auto err = ensure_reflection_multiple_sphere(); err )
+    {
+        assert( false );
+    }
+    if ( auto err = ensure_refraction_and_glass_surface(); err )
     {
         assert( false );
     }
