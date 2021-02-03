@@ -107,6 +107,14 @@ void test_pixel_io_function() {
     }
 }
 
+void test_reflection() {
+    Vec3 in{1, -1, 333};
+    Vec3 normal{0, 1, 0};
+    Vec3 out = reflect(in, normal);
+    Vec3 expected{1, 1, 333};
+    assert(out == expected);
+}
+
 int main()
 {
     test_creation();
@@ -115,5 +123,6 @@ int main()
     test_vec_unary_op();
     test_ray_function();
     test_pixel_io_function();
+    test_reflection();
     return 0;
 }

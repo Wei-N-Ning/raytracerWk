@@ -114,4 +114,9 @@ inline Vec3 at( const Ray& r, double t ) noexcept
     return r.first + r.second * t;
 }
 
+inline Vec3 reflect( const Vec3& v, const Vec3& n )
+{
+    return v - n * dot( v, n ) * 2;
+}
+
 #endif  // RAYTRACERWEEKEND_TAKE2_MATH_HH

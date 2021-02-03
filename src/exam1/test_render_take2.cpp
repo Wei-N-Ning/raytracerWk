@@ -77,6 +77,13 @@ struct HitRecord
 // NOTE: had a bug in the scattered() method
 struct Lambertian : public IMaterial
 {
+    Vec3 albedo{ 0.5, 0.5, 0.5 };
+
+    Lambertian() = default;
+    explicit Lambertian( Vec3 al ) : albedo( std::move( al ) )
+    {
+    }
+
     std::optional< ScatterRecord > scattered( const Ray& in,
                                               const HitRecord& hitRecord ) override
     {
@@ -92,16 +99,32 @@ struct Lambertian : public IMaterial
 
         Vec3 target = hitRecord.hitPoint + hitRecord.normal + p;
         Ray scatteredRay{ hitRecord.hitPoint, target - hitRecord.hitPoint };
-        return ScatterRecord{ scatteredRay, { 0.5, 0.5, 0.5 } };
+        return ScatterRecord{ scatteredRay, albedo };
     }
 };
 
+// NOTE: copy-paste introduced a major bug here (const auto& [ _, scatteredDir ] = in;)
 struct Metal : public IMaterial
 {
+    Vec3 albedo{ 0.8, 0.8, 0.8 };
+
+    Metal() = default;
+    explicit Metal( Vec3 al ) : albedo( std::move( al ) )
+    {
+    }
+
     std::optional< ScatterRecord > scattered( const Ray& in,
                                               const HitRecord& hitRecord ) override
     {
-        return {};
+        const auto& [ orig, dir ] = in;
+        Vec3 reflected = reflect( normalized( dir ), hitRecord.normal );
+        Ray scatteredRay{ hitRecord.hitPoint, reflected };
+        const auto& [ _, scatteredDir ] = scatteredRay;
+        if ( dot( scatteredDir, hitRecord.normal ) > 0 )
+        {
+            return ScatterRecord{ scatteredRay, albedo };
+        }
+        return std::nullopt;
     }
 };
 
@@ -154,6 +177,7 @@ struct HitableList : public IHitable
 
 // NOTE: had two major bugs in the hitTest() method - worth rewriting it with more unit
 //       tests!
+//       UPDATE: found the 3rd bug: missing the branch that calc -b + sqrt(discriminant)
 // a better explanation of the intersection formula
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
 // | O + tD | ^ 2 − R2 = 0
@@ -199,6 +223,19 @@ struct Sphere : public IHitable
                               hitPoint,
                               t };
         }
+
+        t = ( -b + std::sqrt( discriminant ) ) / ( 2.0 * a );
+        if ( t < limit.max && t > limit.min )
+        {
+            Vec3 hitPoint = at( ray, t );
+            Vec3 surfaceNormal = normalized( hitPoint - center );
+            return HitRecord{ //
+                              mat,
+                              surfaceNormal,
+                              hitPoint,
+                              t };
+        }
+
         return std::nullopt;
     }
 };
@@ -247,17 +284,13 @@ struct Renderer
         RangeLimit limit{ 0.000001, 10000000 };
         if ( auto optRecord = hitableList.hitTest( ray, limit ); optRecord )
         {
-            auto& hitRecord = *optRecord;
+            const auto& hitRecord = *optRecord;
             if ( auto optScaRecord = hitRecord.material->scattered( ray, hitRecord );
                  optScaRecord )
             {
-                const auto& scatterRecord = *optScaRecord;
-                return render( scatterRecord.ray ) * scatterRecord.attenuation;
+                return render( optScaRecord->ray ) * optScaRecord->attenuation;
             }
-            else
-            {
-                return { 0, 0, 0 };
-            }
+            return { 0, 0, 0 };
         }
         return bgColorGenerator( ray );
     }
@@ -394,12 +427,14 @@ OptError ensure_it_renders_single_sphere()
 OptError ensure_reflection_multiple_sphere()
 {
     ImageDriver id{ 300, 200, 8 };  // 3 : 2
-    Lambertian diffuse{};
-    Metal metal{};
-    Sphere s1{ Vec3{ -0.6 - 0.3, -0.2, -1 }, 0.3, &diffuse };
-    Sphere s2{ Vec3{ 0, 0, -1 }, 0.5, &diffuse };
-    Sphere s3{ Vec3{ 0.6 + 0.3, -0.2, -1 }, 0.3, &diffuse };
-    Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuse };
+    Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
+    Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
+    Lambertian diffuseGrey{};
+    Metal metal{ { 1.0, 0.8, 0.7 } };
+    Sphere s1{ Vec3{ -0.6 - 0.3, -0.2, -1 }, 0.3, &diffuseBlue };
+    Sphere s2{ Vec3{ 0, 0, -1 }, 0.5, &metal };
+    Sphere s3{ Vec3{ 0.6 + 0.3, -0.2, -1 }, 0.3, &diffuseRed };
+    Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuseGrey };
     Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
     renderer.add( &s1 );
     renderer.add( &s2 );
