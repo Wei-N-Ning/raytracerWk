@@ -69,7 +69,7 @@ bool Metal::scatter( const RTWK::Ray &inRay,
     scattered = Ray( record.p, reflected + m_fuzziness * randomInUnitSphere() );
     attenuation = m_albedo;
 
-    // only scattered if there is a right angle between incoming ray
+    // only scattered if there is an acute angle between incoming ray
     // and the surface normal;
     return ( dot( scattered.direction(), record.normal ) > 0 );
 }

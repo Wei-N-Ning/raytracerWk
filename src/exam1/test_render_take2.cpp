@@ -140,10 +140,54 @@ struct Metal : public IMaterial
 
 struct Dielectrics : public IMaterial
 {
+    double refractiveIndex{ 1.5 };
+    std::mt19937 gen{ std::random_device()() };
+    std::uniform_real_distribution< double > dist{ 0, 1 };
+
     std::optional< ScatterRecord > scattered( const Ray& in,
                                               const HitRecord& hitRecord ) override
     {
-        return {};
+        Vec3 outwardNormal{};
+        double ni_over_nt;
+        double reflectProb;
+        double cosine;
+        Vec3 attenuation{ 1.0, 1.0, 1.0 };
+
+        const auto& [ orig, dir ] = in;
+        Vec3 reflected = reflect( dir, hitRecord.normal );
+        if ( dot( dir, hitRecord.normal ) > 0 )
+        {
+            // there is an obtuse angle between in-ray and normal
+            outwardNormal = -hitRecord.normal;
+            ni_over_nt = refractiveIndex;
+            cosine = refractiveIndex * dot( dir, hitRecord.normal ) / length( dir );
+        }
+        else
+        {
+            outwardNormal = hitRecord.normal;
+            ni_over_nt = 1.0 / refractiveIndex;
+            cosine = -dot( dir, hitRecord.normal ) / length( dir );
+        }
+
+        Vec3 refracted{};
+        if ( auto optRefr = refract( dir, outwardNormal, ni_over_nt ); optRefr )
+        {
+            reflectProb = schlick( cosine, refractiveIndex );
+            refracted = *optRefr;
+        }
+        else
+        {
+            reflectProb = 1.0;
+        }
+
+        if ( drand48() < reflectProb )
+        {
+            return ScatterRecord{ Ray{ hitRecord.hitPoint, reflected }, attenuation };
+        }
+        else
+        {
+            return ScatterRecord{ Ray{ hitRecord.hitPoint, refracted }, attenuation };
+        }
     }
 };
 
@@ -197,6 +241,10 @@ struct HitableList : public IHitable
 // NOTE: had two major bugs in the hitTest() method - worth rewriting it with more unit
 //       tests!
 //       UPDATE: found the 3rd bug: missing the branch that calc -b + sqrt(discriminant)
+//       UPDATE: I understood why the original implementation divides the normal by the radius:
+//               it is to account for negative sphere radius, where normals are pointing inwards;
+//               I had to fix an issue related to this: normalized( ( hitPoint - center ) / radius )
+//                                                                                         ^^^^^^^ without this, the dielectrics test won't work
 // a better explanation of the intersection formula
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
 // | O + tD | ^ 2 − R2 = 0
@@ -235,7 +283,7 @@ struct Sphere : public IHitable
         if ( t < limit.max && t > limit.min )
         {
             Vec3 hitPoint = at( ray, t );
-            Vec3 surfaceNormal = normalized( hitPoint - center );
+            Vec3 surfaceNormal = normalized( ( hitPoint - center ) / radius );
             return HitRecord{ //
                               mat,
                               surfaceNormal,
@@ -247,7 +295,7 @@ struct Sphere : public IHitable
         if ( t < limit.max && t > limit.min )
         {
             Vec3 hitPoint = at( ray, t );
-            Vec3 surfaceNormal = normalized( hitPoint - center );
+            Vec3 surfaceNormal = normalized( ( hitPoint - center ) / radius );
             return HitRecord{ //
                               mat,
                               surfaceNormal,
@@ -298,16 +346,26 @@ struct Renderer
         hitableList.add( ptr );
     }
 
-    [[nodiscard]] Color render( const Ray& ray ) const
+    // IMPORTANT: the depth parameter is necessary to avoid stack overflow, such as the
+    //            "hollow bubble" test case - one dielectric sphere hides in another;
+    //            in that situation some rays will keep bouncing in the narrow space between
+    //            these two spheres until it reaches the limit of the stack size.
+    //            my original implementation drops the depth parameter and I can sometimes
+    //            see the stack overflow crash when running chapter9/test_dielectrics.cpp
+    [[nodiscard]] Color render( const Ray& ray, size_t depth ) const
     {
         RangeLimit limit{ 0.000001, 10000000 };
         if ( auto optRecord = hitableList.hitTest( ray, limit ); optRecord )
         {
-            const auto& hitRecord = *optRecord;
-            if ( auto optScaRecord = hitRecord.material->scattered( ray, hitRecord );
-                 optScaRecord )
+            if ( depth < 50 )
             {
-                return render( optScaRecord->ray ) * optScaRecord->attenuation;
+                const auto& hitRecord = *optRecord;
+                if ( auto optScaRecord = hitRecord.material->scattered( ray, hitRecord );
+                     optScaRecord )
+                {
+                    return render( optScaRecord->ray, depth + 1 )
+                           * optScaRecord->attenuation;
+                }
             }
             return { 0, 0, 0 };
         }
@@ -351,7 +409,7 @@ struct ImageDriver
                 {
                     double u = double( x + randomOffset() ) / double( xNumPixels );
                     double v = double( y + randomOffset() ) / double( yNumPixels );
-                    pixel = pixel + ren.render( cam.getRay( u, v ) );
+                    pixel = pixel + ren.render( cam.getRay( u, v ), 0 );
                 }
                 pixels[ idx++ ] = postProcess( pixel / double( subSamples ) );
             }
@@ -473,21 +531,26 @@ OptError ensure_reflection_multiple_sphere()
 
 OptError ensure_refraction_and_glass_surface()
 {
-    ImageDriver id{ 300, 200, 8 };  // 3 : 2
-    Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
-    Lambertian diffuseGrey{};
-    Metal metal{ { 1.0, 0.8, 0.7 }, 0.1 };
+    ImageDriver id{ 800, 400, 32 };  // 3 : 2
+    Lambertian diffuseBlue{ { 0.1, 0.2, 0.5 } };
+    Lambertian diffuseGreen{ { 0.8, 0.8, 0 } };
+    Metal metal{ { 0.8, 0.6, 0.2 }, 0 };
     Dielectrics dielectrics{};
-    Sphere s1{ Vec3{ -0.6 - 0.3, -0.2, -1 }, 0.3, &diffuseBlue };
-    Sphere s2{ Vec3{ 0, 0, -1 }, 0.5, &dielectrics };
-    Sphere s3{ Vec3{ 0.6 + 0.3, -0.2, -1 }, 0.3, &metal };
-    Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuseGrey };
+
+    Sphere s1{ Vec3{ 0, 0, -1 }, 0.5, &diffuseBlue };
+    Sphere s2{ Vec3{ 1, 0, -1 }, 0.5, &metal };
+    Sphere s3{ Vec3{ -1, 0, -1 }, 0.5, &dielectrics };
+    Sphere s4{ Vec3{ -1, 0, -1 }, -0.45, &dielectrics };
+
+    Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuseGreen };
+
     Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
     renderer.add( &s1 );
     renderer.add( &s2 );
     renderer.add( &s3 );
+    renderer.add( &s4 );
     renderer.add( &base );
-    if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
+    if ( auto status = id.drive( Camera{ 4.0, 2.0 }, renderer ); status )
     {
         std::ofstream ofs{ "/tmp/3glass.ppm" };
         id.output( ofs );

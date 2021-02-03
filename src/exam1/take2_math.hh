@@ -84,6 +84,12 @@ inline Vec3 cross( const Vec3& a, const Vec3& b ) noexcept
     return Vec3{ a1 * b2 - a2 * b1, a2 * b0 - a0 * b2, a0 * b1 - a1 * b0 };
 }
 
+inline Vec3 operator-( const Vec3& v ) noexcept
+{
+    const auto& [ v0, v1, v2 ] = v;
+    return Vec3{ -v0, -v1, -v2 };
+}
+
 inline double length( const Vec3& v ) noexcept
 {
     const auto& [ v0, v1, v2 ] = v;
@@ -117,6 +123,27 @@ inline Vec3 at( const Ray& r, double t ) noexcept
 inline Vec3 reflect( const Vec3& v, const Vec3& n )
 {
     return v - n * dot( v, n ) * 2;
+}
+
+// ni_over_nt is the refractive index
+// Snell's law
+inline std::optional< Vec3 > refract( const Vec3& v, const Vec3& n, double ni_over_nt )
+{
+    Vec3 uv = normalized( v );
+    double dt = dot( uv, n );
+    double discriminant = 1.0 - ni_over_nt * ni_over_nt * ( 1 - dt * dt );
+    if ( discriminant > 0 )
+    {
+        return ( uv - n * dt ) * ni_over_nt - n * std::sqrt( discriminant );
+    }
+    return std::nullopt;
+}
+
+inline double schlick( double cosine, double ref_idx )
+{
+    double r0 = ( 1 - ref_idx ) / ( 1 + ref_idx );
+    r0 = r0 * r0;
+    return r0 + ( 1 - r0 ) * std::pow( ( 1 - cosine ), 5 );
 }
 
 #endif  // RAYTRACERWEEKEND_TAKE2_MATH_HH
