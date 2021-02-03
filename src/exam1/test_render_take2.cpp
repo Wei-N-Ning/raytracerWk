@@ -19,6 +19,7 @@ struct Camera
     using _label = bool;
     using FOV = _label< 1 >;
     using ORIENTATION = _label< 2 >;
+    using DOF = _label< 3 >;
 
     double width;
     double halfWidth{};
@@ -76,6 +77,14 @@ struct Camera
     }
 
     [[nodiscard]] Ray getRay( double u, double v ) const  // u, v is in the [0, 1] space
+    {
+        return Ray(
+            //
+            position,
+            lowerLeftCorner + horizontal * u + vertical * v - position );
+    }
+
+    [[nodiscard]] Ray getRayDOF( double u, double v ) const
     {
         return Ray(
             //
