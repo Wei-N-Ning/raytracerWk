@@ -96,6 +96,15 @@ struct Lambertian : public IMaterial
     }
 };
 
+struct Metal : public IMaterial
+{
+    std::optional< ScatterRecord > scattered( const Ray& in,
+                                              const HitRecord& hitRecord ) override
+    {
+        return {};
+    }
+};
+
 struct RangeLimit
 {
     double min{};
@@ -363,7 +372,7 @@ OptError ensure_it_generate_background_color()
 
 OptError ensure_it_renders_single_sphere()
 {
-    ImageDriver id{ 300, 200, 64 };  // 3 : 2
+    ImageDriver id{ 300, 200, 1 };  // 3 : 2
     Lambertian diffuse{};
     Sphere sphere{ Vec3{ 0, 0, -1 }, 0.5, &diffuse };
     Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuse };
@@ -378,7 +387,33 @@ OptError ensure_it_renders_single_sphere()
     }
     else
     {
-        return "failed to render background color to file";
+        return "failed to render single sphere to file";
+    }
+}
+
+OptError ensure_reflection_multiple_sphere()
+{
+    ImageDriver id{ 300, 200, 8 };  // 3 : 2
+    Lambertian diffuse{};
+    Metal metal{};
+    Sphere s1{ Vec3{ -0.6 - 0.3, -0.2, -1 }, 0.3, &diffuse };
+    Sphere s2{ Vec3{ 0, 0, -1 }, 0.5, &diffuse };
+    Sphere s3{ Vec3{ 0.6 + 0.3, -0.2, -1 }, 0.3, &diffuse };
+    Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuse };
+    Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
+    renderer.add( &s1 );
+    renderer.add( &s2 );
+    renderer.add( &s3 );
+    renderer.add( &base );
+    if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
+    {
+        std::ofstream ofs{ "/tmp/3spheres.ppm" };
+        id.output( ofs );
+        return std::nullopt;
+    }
+    else
+    {
+        return "failed to render 3 spheres to file";
     }
 }
 
@@ -393,6 +428,10 @@ int main()
         assert( false );
     }
     if ( auto err = ensure_it_renders_single_sphere(); err )
+    {
+        assert( false );
+    }
+    if ( auto err = ensure_reflection_multiple_sphere(); err )
     {
         assert( false );
     }
