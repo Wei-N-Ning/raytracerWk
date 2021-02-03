@@ -74,10 +74,28 @@ struct HitRecord
     double t{};
 };
 
+struct RandomPointGenerator
+{
+    std::mt19937 gen{ std::random_device()() };
+    std::uniform_real_distribution< double > dist{ 0, 1 };
+
+    Vec3 operator()()
+    {
+        Vec3 p{};
+        do
+        {
+            Vec3 s = Vec3( dist( gen ), dist( gen ), dist( gen ) ) * 2;
+            p = s - Vec3( 1, 1, 1 );
+        } while ( squareLength( p ) >= 1.0 );
+        return p;
+    }
+};
+
 // NOTE: had a bug in the scattered() method
 struct Lambertian : public IMaterial
 {
     Vec3 albedo{ 0.5, 0.5, 0.5 };
+    RandomPointGenerator randPointGen{};
 
     Lambertian() = default;
     explicit Lambertian( Vec3 al ) : albedo( std::move( al ) )
@@ -87,17 +105,7 @@ struct Lambertian : public IMaterial
     std::optional< ScatterRecord > scattered( const Ray& in,
                                               const HitRecord& hitRecord ) override
     {
-        static std::mt19937 gen{ std::random_device()() };
-        static std::uniform_real_distribution< double > dist( 0, 1 );
-
-        Vec3 p{};
-        do
-        {
-            Vec3 s = Vec3( dist( gen ), dist( gen ), dist( gen ) ) * 2;
-            p = s - Vec3( 1, 1, 1 );
-        } while ( squareLength( p ) >= 1.0 );
-
-        Vec3 target = hitRecord.hitPoint + hitRecord.normal + p;
+        Vec3 target = hitRecord.hitPoint + hitRecord.normal + randPointGen();
         Ray scatteredRay{ hitRecord.hitPoint, target - hitRecord.hitPoint };
         return ScatterRecord{ scatteredRay, albedo };
     }
@@ -107,9 +115,11 @@ struct Lambertian : public IMaterial
 struct Metal : public IMaterial
 {
     Vec3 albedo{ 0.8, 0.8, 0.8 };
+    double fuzziness{ 0.0 };
+    RandomPointGenerator randPointGen{};
 
     Metal() = default;
-    explicit Metal( Vec3 al ) : albedo( std::move( al ) )
+    Metal( Vec3 al, double fuzz ) : albedo( std::move( al ) ), fuzziness( fuzz )
     {
     }
 
@@ -118,7 +128,7 @@ struct Metal : public IMaterial
     {
         const auto& [ orig, dir ] = in;
         Vec3 reflected = reflect( normalized( dir ), hitRecord.normal );
-        Ray scatteredRay{ hitRecord.hitPoint, reflected };
+        Ray scatteredRay{ hitRecord.hitPoint, reflected + randPointGen() * fuzziness };
         const auto& [ _, scatteredDir ] = scatteredRay;
         if ( dot( scatteredDir, hitRecord.normal ) > 0 )
         {
@@ -426,11 +436,11 @@ OptError ensure_it_renders_single_sphere()
 
 OptError ensure_reflection_multiple_sphere()
 {
-    ImageDriver id{ 300, 200, 8 };  // 3 : 2
+    ImageDriver id{ 300, 200, 16 };  // 3 : 2
     Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
     Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
     Lambertian diffuseGrey{};
-    Metal metal{ { 1.0, 0.8, 0.7 } };
+    Metal metal{ { 1.0, 0.8, 0.7 }, 0.1 };
     Sphere s1{ Vec3{ -0.6 - 0.3, -0.2, -1 }, 0.3, &diffuseBlue };
     Sphere s2{ Vec3{ 0, 0, -1 }, 0.5, &metal };
     Sphere s3{ Vec3{ 0.6 + 0.3, -0.2, -1 }, 0.3, &diffuseRed };
