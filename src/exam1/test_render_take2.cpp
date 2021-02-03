@@ -241,9 +241,11 @@ struct HitableList : public IHitable
 // NOTE: had two major bugs in the hitTest() method - worth rewriting it with more unit
 //       tests!
 //       UPDATE: found the 3rd bug: missing the branch that calc -b + sqrt(discriminant)
-//       UPDATE: I understood why the original implementation divides the normal by the radius:
-//               it is to account for negative sphere radius, where normals are pointing inwards;
-//               I had to fix an issue related to this: normalized( ( hitPoint - center ) / radius )
+//       UPDATE: I understood why the original implementation divides the normal by the
+//       radius:
+//               it is to account for negative sphere radius, where normals are pointing
+//               inwards; I had to fix an issue related to this: normalized( ( hitPoint -
+//               center ) / radius )
 //                                                                                         ^^^^^^^ without this, the dielectrics test won't work
 // a better explanation of the intersection formula
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
@@ -348,8 +350,8 @@ struct Renderer
 
     // IMPORTANT: the depth parameter is necessary to avoid stack overflow, such as the
     //            "hollow bubble" test case - one dielectric sphere hides in another;
-    //            in that situation some rays will keep bouncing in the narrow space between
-    //            these two spheres until it reaches the limit of the stack size.
+    //            in that situation some rays will keep bouncing in the narrow space
+    //            between these two spheres until it reaches the limit of the stack size.
     //            my original implementation drops the depth parameter and I can sometimes
     //            see the stack overflow crash when running chapter9/test_dielectrics.cpp
     [[nodiscard]] Color render( const Ray& ray, size_t depth ) const
@@ -531,7 +533,7 @@ OptError ensure_reflection_multiple_sphere()
 
 OptError ensure_refraction_and_glass_surface()
 {
-    ImageDriver id{ 800, 400, 32 };  // 3 : 2
+    ImageDriver id{ 200, 100, 1 };  // 3 : 2
     Lambertian diffuseBlue{ { 0.1, 0.2, 0.5 } };
     Lambertian diffuseGreen{ { 0.8, 0.8, 0 } };
     Metal metal{ { 0.8, 0.6, 0.2 }, 0 };
@@ -562,6 +564,33 @@ OptError ensure_refraction_and_glass_surface()
     }
 }
 
+OptError ensure_camera_has_fov()
+{
+    ImageDriver id{ 300, 200, 1 };  // 3 : 2
+    Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
+    Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
+    Lambertian diffuseGrey{};
+    Sphere s1{ Vec3{ -0.6 - 0.3, -0.2, -1 }, 0.3, &diffuseBlue };
+    Sphere s2{ Vec3{ 0, 0, -1 }, 0.5, &diffuseGrey };
+    Sphere s3{ Vec3{ 0.6 + 0.3, -0.2, -1 }, 0.3, &diffuseRed };
+    Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuseGrey };
+    Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
+    renderer.add( &s1 );
+    renderer.add( &s2 );
+    renderer.add( &s3 );
+    renderer.add( &base );
+    if ( auto status = id.drive( Camera{ 3.0, 2.0 }, renderer ); status )
+    {
+        std::ofstream ofs{ "/tmp/3fov.ppm" };
+        id.output( ofs );
+        return std::nullopt;
+    }
+    else
+    {
+        return "failed to render 3 spheres with fov to file";
+    }
+}
+
 int main()
 {
     if ( auto err = ensure_it_compiles(); err )
@@ -581,6 +610,10 @@ int main()
         assert( false );
     }
     if ( auto err = ensure_refraction_and_glass_surface(); err )
+    {
+        assert( false );
+    }
+    if ( auto err = ensure_camera_has_fov(); err )
     {
         assert( false );
     }
