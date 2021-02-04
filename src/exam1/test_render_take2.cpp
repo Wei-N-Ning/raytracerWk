@@ -596,7 +596,7 @@ OptError ensure_refraction_and_glass_surface()
 {
     constexpr size_t x = 800;
     constexpr size_t y = 400;
-    constexpr size_t ss = 64;
+    constexpr size_t ss = 1;
     ImageDriver id{ x, y, ss };  // 3 : 2
     Lambertian diffuseBlue{ { 0.6, 0.66, 0.66 } };
     Metal metalBase{ { 0.82, 0.61, 0.53 }, 0.8 };
