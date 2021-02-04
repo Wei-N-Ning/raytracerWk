@@ -377,7 +377,7 @@ struct HitableList : public IHitable
 //               it is to account for negative sphere radius, where normals are pointing
 //               inwards; I had to fix an issue related to this: normalized( ( hitPoint -
 //               center ) / radius )
-//                                                                                         ^^^^^^^ without this, the dielectrics test won't work
+//               without this, the dielectrics test won't work
 // a better explanation of the intersection formula
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
 // | O + tD | ^ 2 − R2 = 0
