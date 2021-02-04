@@ -594,8 +594,8 @@ OptError ensure_reflection_multiple_sphere()
 // NOTE: I've done some lookdev here
 OptError ensure_refraction_and_glass_surface()
 {
-    constexpr size_t x = 800;
-    constexpr size_t y = 400;
+    constexpr size_t x = 400;
+    constexpr size_t y = 200;
     constexpr size_t ss = 1;
     ImageDriver id{ x, y, ss };  // 3 : 2
     Lambertian diffuseBlue{ { 0.6, 0.66, 0.66 } };
