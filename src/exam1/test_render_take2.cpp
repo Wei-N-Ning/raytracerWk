@@ -528,7 +528,7 @@ OptError ensure_it_compiles()
 
 OptError ensure_it_generate_background_color()
 {
-    ImageDriver id{ 100, 50, 1 };
+    ImageDriver id{ 10, 5, 1 };
     Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
     if ( auto status = id.drive( Camera{ 4.0, 2.0 }, renderer ); status )
     {
@@ -544,7 +544,7 @@ OptError ensure_it_generate_background_color()
 
 OptError ensure_it_renders_single_sphere()
 {
-    ImageDriver id{ 300, 200, 1 };  // 3 : 2
+    ImageDriver id{ 30, 20, 1 };  // 3 : 2
     Lambertian diffuse{};
     Sphere sphere{ Vec3{ 0, 0, -1 }, 0.5, &diffuse };
     Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuse };
@@ -565,7 +565,7 @@ OptError ensure_it_renders_single_sphere()
 
 OptError ensure_reflection_multiple_sphere()
 {
-    ImageDriver id{ 300, 200, 1 };  // 3 : 2
+    ImageDriver id{ 30, 20, 1 };  // 3 : 2
     Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
     Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
     Lambertian diffuseGrey{};
@@ -591,7 +591,7 @@ OptError ensure_reflection_multiple_sphere()
     }
 }
 
-// NOTE: I've done some lookdev here
+// NOTE: I've done some lookdev here and removed the glass sphere(s)
 OptError ensure_refraction_and_glass_surface()
 {
     constexpr size_t x = 400;
@@ -634,9 +634,9 @@ OptError ensure_refraction_and_glass_surface()
 
 OptError ensure_camera_has_fov()
 {
-    constexpr int x = 300;
-    constexpr int y = 200;
-    ImageDriver id{ x, y, 8 };
+    constexpr int x = 150;
+    constexpr int y = 100;
+    ImageDriver id{ x, y, 1 };
     Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
     Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
     Lambertian diffuseGrey{};
@@ -669,6 +669,51 @@ OptError ensure_camera_has_fov()
     }
 }
 
+OptError ensure_camera_has_depth_of_field()
+{
+    constexpr int x = 600;
+    constexpr int y = 400;
+    ImageDriver id{ x, y, 2 };
+    Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
+    Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
+    Lambertian diffuseGreen{ { 0.7, 0.7, 0 } };
+    Metal metal{ { 0.9, 0.9, 0.9 }, 0.1 };
+
+    Dielectrics dielectrics{};
+
+    Sphere centerSphere{ Vec3{ 0, 0, -1 }, 0.5, &diffuseBlue };
+    Sphere rightSphere{ Vec3{ 1, 0, -1 }, 0.5, &metal };
+    Sphere leftSphereOuter{ Vec3{ -1, 0, -1 }, 0.5, &dielectrics };
+    Sphere leftSphereInner{ Vec3{ -1, 0, -1 }, -0.45, &dielectrics };
+
+    Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuseGreen };
+
+    Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
+    renderer.add( &centerSphere );
+    renderer.add( &rightSphere );
+    renderer.add( &leftSphereOuter );
+    renderer.add( &leftSphereInner );
+
+    renderer.add( &base );
+    Camera camera{ //
+                   Camera::ORIENTATION{},
+                   30,
+                   double( x ) / double( y ),
+                   Vec3{ -2, 2, 1 },
+                   Vec3{ 0, 0, -1 },
+                   Vec3( 0, 1, 0 ) };
+    if ( auto status = id.drive( camera, renderer ); status )
+    {
+        std::ofstream ofs{ "/tmp/3dof.ppm" };
+        id.output( ofs );
+        return std::nullopt;
+    }
+    else
+    {
+        return "failed to render 3 spheres with fov and depth of field to file";
+    }
+}
+
 int main()
 {
     if ( auto err = ensure_it_compiles(); err )
@@ -692,6 +737,10 @@ int main()
         assert( false );
     }
     if ( auto err = ensure_camera_has_fov(); err )
+    {
+        assert( false );
+    }
+    if ( auto err = ensure_camera_has_depth_of_field(); err )
     {
         assert( false );
     }
