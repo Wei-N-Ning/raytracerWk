@@ -14,10 +14,30 @@
 #include <algorithm>
 #include <cmath>
 
+Vec3 randomInLens( const std::optional< double >& lensRadius )
+{
+    static std::mt19937 gen{ std::random_device()() };
+    static std::uniform_real_distribution< double > dist{ 0, 1 };
+    Vec3 p{};
+    if ( !lensRadius )
+    {
+        return p;
+    }
+    Vec3 target{ 1, 1, 0 };
+    do
+    {
+        p = Vec3{ dist( gen ), dist( gen ), 0 } - target;
+    } while ( dot( p, p ) >= 1.0 );
+    return p * *lensRadius;
+}
+
 struct Camera
 {
     template < int >
-    using _label = bool;
+    struct _label
+    {
+    };
+
     using FOV = _label< 1 >;
     using ORIENTATION = _label< 2 >;
     using DOF = _label< 3 >;
@@ -33,6 +53,10 @@ struct Camera
     Vec3 lowerLeftCorner{};
     Vec3 horizontal{};
     Vec3 vertical{};
+    Vec3 u{};
+    Vec3 v{};
+    Vec3 w{};
+    std::optional< double > lensRadius{};
 
     Camera( double w, double h )
         : width( w )
@@ -43,7 +67,11 @@ struct Camera
     {
     }
 
-    Camera( FOV, double vFov, double aspect )
+    Camera(
+        //
+        FOV,
+        double vFov,
+        double aspect )
     {
         double theta = vFov * M_PI / 180.0;
         //   _|
@@ -57,9 +85,15 @@ struct Camera
         vertical = Vec3{ 0, height, 0 };
     }
 
-    Camera( ORIENTATION, double vFov, double aspect, Vec3 position, Vec3 lookAt, Vec3 up )
+    Camera(
+        //
+        ORIENTATION,
+        double vFov,
+        double aspect,
+        Vec3 position,
+        Vec3 lookAt,
+        Vec3 up )
     {
-        Vec3 u, v, w;
         // camera faces -w;
         double theta = vFov * M_PI / 180.0;
         halfHeight = std::tan( theta / 2 );
@@ -68,29 +102,74 @@ struct Camera
         width = 2 * halfWidth;
 
         this->position = position;
+
+        // lookAt -> position (negative w)
         w = normalized( position - lookAt );
         u = normalized( cross( up, w ) );
         v = cross( w, u );
 
+        // u, v, w are roughly the x, y, z in the camera's local
+        // coord system (but don't take it for granted because
+        // the directions are quite different)
+
+        // move position by -u, -v, -w
+        // (which move the vector to somewhere "before" the position,
+        //  recall the directions of u v w)
+        // for dof camera:
+        //
         lowerLeftCorner = position - u * halfWidth - v * halfHeight - w;
         horizontal = u * width;
         vertical = v * height;
     }
 
-    [[nodiscard]] Ray getRay( double u, double v ) const  // u, v is in the [0, 1] space
+    Camera(
+        //
+        DOF,
+        double vFov,
+        double aspect,
+        Vec3 position,
+        Vec3 lookAt,
+        Vec3 up,
+        double aperture,
+        double focusDist )
     {
-        return Ray(
+        lensRadius.emplace( aperture / 2.0 );
+
+        double theta = vFov * M_PI / 180.0;
+        halfHeight = std::tan( theta / 2 );
+        halfWidth = aspect * halfHeight;
+        height = 2 * halfHeight;
+        width = 2 * halfWidth;
+
+        this->position = position;
+
+        w = normalized( position - lookAt );
+        u = normalized( cross( up, w ) );
+        v = cross( w, u );
+
+        lowerLeftCorner =
             //
-            position,
-            lowerLeftCorner + horizontal * u + vertical * v - position );
+            position - u * focusDist * halfWidth - v * focusDist * halfHeight
+            - w * focusDist;
+        horizontal = u * width * focusDist;
+        vertical = v * height * focusDist;
     }
 
-    [[nodiscard]] Ray getRayDOF( double u, double v ) const
+    [[nodiscard]] Ray getRay( double s, double t ) const  // u, v is in the [0, 1] space
     {
+        Vec3 rd = randomInLens( lensRadius );
+        const auto& [ x, y, _ ] = rd;
+        Vec3 offset = u * x + v * y;
+
+        // the goal of DOF simulation is to have multiple rays contributing
+        // to the points that are out of focus, hence blurred
         return Ray(
             //
-            position,
-            lowerLeftCorner + horizontal * u + vertical * v - position );
+            position + offset,
+            // position -> pt-on-virtual-plane
+            // for dof camera:
+            // position + 'd -> pt-on-virtual-plane + 'd
+            lowerLeftCorner + horizontal * s + vertical * t - position - offset );
     }
 };
 
@@ -673,7 +752,9 @@ OptError ensure_camera_has_depth_of_field()
 {
     constexpr int x = 600;
     constexpr int y = 400;
-    ImageDriver id{ x, y, 2 };
+    constexpr size_t ss = 32;
+
+    ImageDriver id{ x, y, ss };
     Lambertian diffuseBlue{ { 0.4, 0.6, 1.0 } };
     Lambertian diffuseRed{ { 1.4, 0.6, 0.4 } };
     Lambertian diffuseGreen{ { 0.7, 0.7, 0 } };
@@ -695,13 +776,16 @@ OptError ensure_camera_has_depth_of_field()
     renderer.add( &leftSphereInner );
 
     renderer.add( &base );
-    Camera camera{ //
-                   Camera::ORIENTATION{},
+    Vec3 position{ 3, 3, 2 };
+    Vec3 lookAt{ 0, 0, -1 };
+    Camera camera{ Camera::DOF{},
                    30,
                    double( x ) / double( y ),
-                   Vec3{ -2, 2, 1 },
-                   Vec3{ 0, 0, -1 },
-                   Vec3( 0, 1, 0 ) };
+                   position,
+                   lookAt,
+                   Vec3( 0, 1, 0 ),
+                   2.0,
+                   length( position - lookAt ) };
     if ( auto status = id.drive( camera, renderer ); status )
     {
         std::ofstream ofs{ "/tmp/3dof.ppm" };
