@@ -12,6 +12,7 @@
 #include <random>
 #include <cassert>
 #include <algorithm>
+#include <cmath>
 
 struct Camera
 {
@@ -365,17 +366,25 @@ struct DualTone
 {
     Color a{ 1, 1, 1 };
     Color b{ 1, 1, 1 };
+    double scale{ 1 };
 
     DualTone() = default;
     DualTone( Color c1, Color c2 ) : a( std::move( c1 ) ), b( std::move( c2 ) )
     {
     }
 
+    DualTone( Color c1, Color c2, double scale )
+        : a( std::move( c1 ) ), b( std::move( c2 ) )
+    {
+        this->scale = scale;
+    }
+
     [[nodiscard]] Color operator()( const Ray& ray ) const
     {
         const auto& [ _orig, dir ] = ray;
         auto dirN = normalized( dir );
-        const auto& [ _x, y, _z ] = dirN;
+        const auto& [ _x, _y, _z ] = dirN;
+        double y = std::clamp( _y * scale, 0.0, 1.0 );
         double t = ( y + 1.0 ) * 0.5;  // [0.0, 1.0]
         return b * ( 1 - t ) + a * t;
     }
@@ -584,26 +593,33 @@ OptError ensure_reflection_multiple_sphere()
 
 OptError ensure_refraction_and_glass_surface()
 {
-    ImageDriver id{ 200, 100, 1 };  // 3 : 2
-    Lambertian diffuseBlue{ { 0.1, 0.2, 0.5 } };
-    Lambertian diffuseGreen{ { 0.8, 0.8, 0 } };
-    Metal metal{ { 0.8, 0.6, 0.2 }, 0 };
+    constexpr size_t x = 800;
+    constexpr size_t y = 400;
+    constexpr size_t ss = 64;
+    ImageDriver id{ x, y, ss };  // 3 : 2
+    Lambertian diffuseBlue{ { 0.57, 0.53, 0.54 } };
+    Metal metalBase{ { 0.82, 0.61, 0.53 }, 0.8 };
+    Metal metalBronze{ { 0.68, 0.7, 0.4 }, 0.4 };
+    Metal metalIron{ { 0.6, 0.6, 0.67 }, 0.13 };
     Dielectrics dielectrics{};
 
-    Sphere s1{ Vec3{ 0, 0, -1 }, 0.5, &diffuseBlue };
-    Sphere s2{ Vec3{ 1, 0, -1 }, 0.5, &metal };
-    Sphere s3{ Vec3{ -1, 0, -1 }, 0.5, &dielectrics };
-    Sphere s4{ Vec3{ -1, 0, -1 }, -0.45, &dielectrics };
+    Sphere s1{ Vec3{ 0, 0, -3.4 }, 0.5, &diffuseBlue };
+    Sphere s2{ Vec3{ 1.2, 0, -3.95 }, 0.5, &metalBronze };
+    Sphere s3{ Vec3{ -1.2, 0, -3.7 }, 0.5, &metalIron };
 
-    Sphere base{ Vec3{ 0, -100.5, -1 }, 100, &diffuseGreen };
+    Sphere base{ Vec3{ 0, -100.5, -3.6 }, 100, &metalBase };
 
-    Renderer renderer{ DualTone{ Color{ 0.5, 0.7, 1 }, Color{ 1, 1, 1 } } };
+    DualTone bg{ //
+                 Color{ 0.09, 0.14, 0.45 },
+                 Color{ 0.9, 0.19, 0.09 },
+                 4 };
+    Renderer renderer{ bg };
     renderer.add( &s1 );
     renderer.add( &s2 );
     renderer.add( &s3 );
-    renderer.add( &s4 );
     renderer.add( &base );
-    if ( auto status = id.drive( Camera{ 4.0, 2.0 }, renderer ); status )
+    Camera camera{ Camera::FOV{}, 45, double( x ) / double( y ) };
+    if ( auto status = id.drive( camera, renderer ); status )
     {
         std::ofstream ofs{ "/tmp/3glass.ppm" };
         id.output( ofs );
