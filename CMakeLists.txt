@@ -27,7 +27,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/3rdParty/oneDPL-20201111)
 
 add_subdirectory(3rdParty/doctest)
 enable_testing()
-include(tinyCUnit/tinyCUnit.cmake)
 
 add_subdirectory(src)
 add_subdirectory(tests)
+
