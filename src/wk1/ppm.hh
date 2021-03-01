@@ -12,7 +12,7 @@
 #include <ostream>
 #include <functional>
 
-namespace RTWK
+namespace RTWK1
 {
 // Ray function is to abstract the examples in the book so that I can
 // reuse the base algorithm (iterating the pixels and writing out color)

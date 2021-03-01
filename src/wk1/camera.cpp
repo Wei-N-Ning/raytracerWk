@@ -7,7 +7,7 @@
 #include <cmath>
 #include <random>
 
-namespace RTWK
+namespace RTWK1
 {
 Camera::Camera( float vFov, float aspect )
 {

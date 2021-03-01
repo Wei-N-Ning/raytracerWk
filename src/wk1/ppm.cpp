@@ -7,15 +7,15 @@
 
 #include <random>
 
-namespace RTWK
+namespace RTWK1
 {
 Vec3 generateBackgroundColor( Ray& r )
 {
-    RTWK::Vec3 dir = r.direction().normalized();
+    RTWK1::Vec3 dir = r.direction().normalized();
     // center to horizon
     float t = 0.5f * ( dir.y() + 1.0f );
     // a two-tune blend function using t as the parameter, ranging (0.0f, 1.0f)
-    return ( 1.0f - t ) * RTWK::Vec3( 1.0, 1.0, 1.0 ) + t * RTWK::Vec3( 0.5, 0.7, 1.0 );
+    return ( 1.0f - t ) * RTWK1::Vec3( 1.0, 1.0, 1.0 ) + t * RTWK1::Vec3( 0.5, 0.7, 1.0 );
 }
 
 void createTestImage( std::ostream& os, int xNumPixels, int yNumPixels )

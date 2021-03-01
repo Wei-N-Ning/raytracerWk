@@ -7,7 +7,7 @@
 
 #include "vec3.hh"
 
-namespace RTWK
+namespace RTWK1
 {
 //! P8
 //! p(t) = A + tB

@@ -4,7 +4,7 @@
 
 #include "vec3.hh"
 
-namespace RTWK
+namespace RTWK1
 {
 Vec3::Vec3()
 {

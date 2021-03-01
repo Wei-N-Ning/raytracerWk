@@ -6,14 +6,14 @@
 
 #include "entities.hh"
 
-namespace RTWK
+namespace RTWK1
 {
-Sphere::Sphere( RTWK::Vec3 center, float radius )
+Sphere::Sphere( RTWK1::Vec3 center, float radius )
     : m_center(std::move( center )), m_radius( radius )
 {
 }
 
-Sphere::Sphere( RTWK::Vec3 center, float radius, RTWK::IMaterial *material )
+Sphere::Sphere( RTWK1::Vec3 center, float radius, RTWK1::IMaterial *material )
     : m_center(std::move( center )), m_radius( radius ), m_material( material )
 {
 }
@@ -30,7 +30,7 @@ Sphere::Sphere( RTWK::Vec3 center, float radius, RTWK::IMaterial *material )
 // A: ray's origin
 // B: ray's direction (should be normalized)
 // C: center of sphere
-bool Sphere::hit( const RTWK::Ray &ray, float t_min, float t_max, HitRecord &record )
+bool Sphere::hit( const RTWK1::Ray &ray, float t_min, float t_max, HitRecord &record )
 {
     Vec3 centerToOrigin = ray.origin() - m_center;
 
@@ -79,12 +79,12 @@ bool Sphere::hit( const RTWK::Ray &ray, float t_min, float t_max, HitRecord &rec
     return false;
 }
 
-bool HitableList::hit( const RTWK::Ray &ray,
+bool HitableList::hit( const RTWK1::Ray &ray,
                        float t_min,
                        float t_max,
-                       RTWK::HitRecord &record )
+                       RTWK1::HitRecord &record )
 {
-    RTWK::HitRecord tempRecord;
+    RTWK1::HitRecord tempRecord;
     bool hitAnything = false;
     float closestSoFar = t_max;
 

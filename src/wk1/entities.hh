@@ -10,7 +10,7 @@
 
 #include <vector>
 
-namespace RTWK
+namespace RTWK1
 {
 // P24
 // Hitable and Material needs to know each other so there is some

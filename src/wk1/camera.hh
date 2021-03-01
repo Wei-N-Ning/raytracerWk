@@ -7,7 +7,7 @@
 
 #include "ray.hh"
 
-namespace RTWK
+namespace RTWK1
 {
 // P33
 // an adjustable field of view (fov)

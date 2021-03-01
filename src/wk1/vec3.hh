@@ -10,7 +10,7 @@
 #include <vector>
 #include <cmath>
 
-namespace RTWK
+namespace RTWK1
 {
 struct Vec3
 {

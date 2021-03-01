@@ -10,27 +10,27 @@
 
 #include <map>
 
-namespace RTWK
+namespace RTWK1
 {
-class SimpleRender : public RTWK::IRender
+class SimpleRender : public RTWK1::IRender
 {
 public:
     ~SimpleRender();
 
-    RTWK::Vec3 render( RTWK::Ray &ray ) override;
+    RTWK1::Vec3 render( RTWK1::Ray &ray ) override;
 
     void updateWorld()
     {
-        m_world = new RTWK::HitableList( true );
+        m_world = new RTWK1::HitableList( true );
         for ( auto &ptr : m_entities )
         {
             m_world->add( ptr );
         }
     }
 
-    RTWK::HitableList *m_world = nullptr;
-    std::map< std::string, RTWK::IMaterial * > m_materials;
-    std::vector< RTWK::IHitable * > m_entities;
+    RTWK1::HitableList *m_world = nullptr;
+    std::map< std::string, RTWK1::IMaterial * > m_materials;
+    std::vector< RTWK1::IHitable * > m_entities;
 };
 
 }  // namespace RTWK

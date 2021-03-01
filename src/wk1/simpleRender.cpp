@@ -7,13 +7,13 @@
 
 #include <limits>
 
-namespace RTWK
+namespace RTWK1
 {
 constexpr float maxFloat = std::numeric_limits< float >::max();
 
-RTWK::Vec3 SimpleRender::render( RTWK::Ray& ray )
+RTWK1::Vec3 SimpleRender::render( RTWK1::Ray& ray )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
     HitRecord hitRecord;
     if ( m_world->hit( ray, 0.00001f, maxFloat, hitRecord ) > 0 )

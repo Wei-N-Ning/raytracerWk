@@ -6,9 +6,9 @@
 
 #include "ray.hh"
 
-namespace RTWK
+namespace RTWK1
 {
-Ray::Ray( RTWK::Vec3  A, RTWK::Vec3  B ) : m_A(std::move( A )), m_B(std::move( B ))
+Ray::Ray( RTWK1::Vec3  A, RTWK1::Vec3  B ) : m_A(std::move( A )), m_B(std::move( B ))
 {
 }
 

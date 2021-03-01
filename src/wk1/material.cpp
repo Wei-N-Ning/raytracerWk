@@ -7,27 +7,27 @@
 
 #include <random>
 
-namespace RTWK
+namespace RTWK1
 {
 // Ported from Chapter 7, diffuse
 // need to be refactored
-RTWK::Vec3 randomInUnitSphere()
+RTWK1::Vec3 randomInUnitSphere()
 {
-    RTWK::Vec3 p;
+    RTWK1::Vec3 p;
     static std::mt19937 gen{ std::random_device()() };
     static std::uniform_real_distribution< float > dist( 0.0, 1.0 );
     do
     {
-        RTWK::Vec3 s = 2.0f * RTWK::Vec3( dist( gen ), dist( gen ), dist( gen ) );
-        p = s - RTWK::Vec3( 1, 1, 1 );
+        RTWK1::Vec3 s = 2.0f * RTWK1::Vec3( dist( gen ), dist( gen ), dist( gen ) );
+        p = s - RTWK1::Vec3( 1, 1, 1 );
     } while ( p.sqr_length() >= 1.0f );
     return p;
 }
 
-bool Lambertian::scatter( const RTWK::Ray &inRay,
-                          const RTWK::HitRecord &record,
-                          RTWK::Vec3 &attenuation,
-                          RTWK::Ray &scattered ) const
+bool Lambertian::scatter( const RTWK1::Ray &inRay,
+                          const RTWK1::HitRecord &record,
+                          RTWK1::Vec3 &attenuation,
+                          RTWK1::Ray &scattered ) const
 {
     Vec3 target = record.p + record.normal + randomInUnitSphere();
 
@@ -59,10 +59,10 @@ Vec3 reflect( const Vec3 &v, const Vec3 &N )
     return v - 2 * dot( v, N ) * N;
 }
 
-bool Metal::scatter( const RTWK::Ray &inRay,
-                     const RTWK::HitRecord &record,
-                     RTWK::Vec3 &attenuation,
-                     RTWK::Ray &scattered ) const
+bool Metal::scatter( const RTWK1::Ray &inRay,
+                     const RTWK1::HitRecord &record,
+                     RTWK1::Vec3 &attenuation,
+                     RTWK1::Ray &scattered ) const
 {
     Vec3 reflected = reflect( inRay.direction().normalized(), record.normal );
 

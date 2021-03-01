@@ -2,12 +2,22 @@
 // Created by wein on 26/08/18.
 //
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+
 #include <ppm.hh>
+#include <sstream>
 
-#include <iostream>
-
-int main( int argc, char **argv )
+TEST_CASE("expect pixel values")
 {
-    RTWK::createTestImage( std::cout, 128, 128 );
-    return 0;
+    std::ostringstream oss;
+    RTWK1::createTestImage( oss, 2, 2);
+    CHECK_EQ(oss.str(), R"(P3
+2 2
+255
+0 0 51
+127 0 51
+0 127 51
+127 127 51
+)");
 }

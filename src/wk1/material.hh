@@ -17,7 +17,7 @@
 #include "ray.hh"
 #include "entities.hh"
 
-namespace RTWK
+namespace RTWK1
 {
 // P25
 // "material will tell us how rays interact with the surface.
