@@ -20,6 +20,11 @@ if(result)
     message(FATAL "fail to compile c++17!!")
 endif()
 
+set(TBB_DIR ${PROJECT_SOURCE_DIR}/3rdParty/oneapi-tbb-2021.1.1/lib/cmake/tbb)
+find_package(TBB REQUIRED tbb)
+# Parallel STL
+add_subdirectory(${PROJECT_SOURCE_DIR}/3rdParty/oneDPL-20201111)
+
 add_subdirectory(3rdParty/doctest)
 enable_testing()
 include(tinyCUnit/tinyCUnit.cmake)
