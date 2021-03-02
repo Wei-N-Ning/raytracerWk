@@ -2,15 +2,17 @@
 // Created by wein on 6/10/18.
 //
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+
 #include <simpleRender.hh>
 #include <material.hh>
 
 #include <fstream>
-#include <cassert>
 
-inline RTWK::SimpleRender createScene()
+inline RTWK1::SimpleRender createScene()
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
     SimpleRender render;
     render.m_materials[ "lambert.red" ] = new Lambertian( { 1.0f, 0.1f, 0.0f } );
@@ -29,50 +31,43 @@ inline RTWK::SimpleRender createScene()
     return render;
 }
 
-void test_camera_fov()
+TEST_CASE( "test_camera_fov" )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
     SimpleRender render = createScene();
 
-    RTWK::Camera camera;
+    RTWK1::Camera camera;
     std::ofstream ofs;
 
     camera = Camera( 45.0f, 2.0f );
     ofs.open( "/tmp/test_camera_fov45.ppm" );
-    RTWK::createImageMaterial( ofs, 200, 100, 8, camera, render, true );
+    RTWK1::createImageMaterial( ofs, 200, 100, 8, camera, render, true );
     ofs.close();
 
     camera = Camera( 90.0f, 2.0f );
     ofs.open( "/tmp/test_camera_fov90.ppm" );
-    RTWK::createImageMaterial( ofs, 200, 100, 8, camera, render, true );
+    RTWK1::createImageMaterial( ofs, 200, 100, 8, camera, render, true );
     ofs.close();
 
     camera = Camera( 120.0f, 2.0f );
     ofs.open( "/tmp/test_camera_fov120.ppm" );
-    RTWK::createImageMaterial( ofs, 200, 100, 8, camera, render, true );
+    RTWK1::createImageMaterial( ofs, 200, 100, 8, camera, render, true );
     ofs.close();
 }
 
-void test_camera_orientation()
+TEST_CASE( "test_camera_orientation" )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
     SimpleRender render = createScene();
 
-    RTWK::Camera camera;
+    RTWK1::Camera camera;
     std::ofstream ofs;
 
     camera = Camera(
         Vec3( -1.35f, 1.45f, 0.7f ), Vec3( 0, 0, -1 ), Vec3( 0, 1, 0 ), 60.0f, 2.0f );
     ofs.open( "/tmp/test_camera_.ppm" );
-    RTWK::createImageMaterial( ofs, 200, 100, 16, camera, render, true );
+    RTWK1::createImageMaterial( ofs, 200, 100, 16, camera, render, true );
     ofs.close();
-}
-
-int main()
-{
-    test_camera_fov();
-    test_camera_orientation();
-    return 0;
 }

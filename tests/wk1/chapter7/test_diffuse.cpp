@@ -2,14 +2,15 @@
 // Created by wein on 2/09/18.
 //
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+
 #include <ppm.hh>
 #include <entities.hh>
 
 #include <limits>
 #include <fstream>
 #include <random>
-#include <cassert>
-#include <cstdlib>
 
 // P21
 // "one question is whether we can mix and match shapes and materials
@@ -32,9 +33,9 @@
 // pick a random points from the unit radius sphere that is tangent to
 // the hitpoint, and send a ray from the hitpoint p to the random point
 // s. That sphere has center (p + N)
-RTWK::Vec3 randomInUnitSphere()
+RTWK1::Vec3 randomInUnitSphere()
 {
-    RTWK::Vec3 p;
+    RTWK1::Vec3 p;
 
     // P22
     // to pick a random point in a unit radius sphere....
@@ -47,30 +48,30 @@ RTWK::Vec3 randomInUnitSphere()
     do
     {
         // this could also work:
-        // 2.0f * RTWK::Vec3(drand48(), drand48(), drand48())
+        // 2.0f * RTWK1::Vec3(drand48(), drand48(), drand48())
         // and produces similar result
-        RTWK::Vec3 s = 2.0f * RTWK::Vec3( dist( gen ), dist( gen ), dist( gen ) );
-        p = s - RTWK::Vec3( 1, 1, 1 );
+        RTWK1::Vec3 s = 2.0f * RTWK1::Vec3( dist( gen ), dist( gen ), dist( gen ) );
+        p = s - RTWK1::Vec3( 1, 1, 1 );
     } while ( p.sqr_length() >= 1.0f );
 
     return p;
 }
 
-constexpr float minFloat = std::numeric_limits< float >::min();
+// constexpr float minFloat = std::numeric_limits< float >::min();
 constexpr float maxFloat = std::numeric_limits< float >::max();
 
-RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
+RTWK1::Vec3 surfaceColor( RTWK1::Ray& ray )
 {
-    static std::vector< RTWK::Sphere > store{
-        RTWK::Sphere( RTWK::Vec3{ 0, 0, -1 }, 0.5 ),
-        RTWK::Sphere( RTWK::Vec3{ 0, -100.5f, -1 }, 100 ) };
+    static std::vector< RTWK1::Sphere > store{
+        RTWK1::Sphere( RTWK1::Vec3{ 0, 0, -1 }, 0.5 ),
+        RTWK1::Sphere( RTWK1::Vec3{ 0, -100.5f, -1 }, 100 ) };
 
-    RTWK::HitableList spheres;
+    RTWK1::HitableList spheres;
     spheres.add( &( store[ 0 ] ) );
     spheres.add( &( store[ 1 ] ) );
 
-    using namespace RTWK;
-    RTWK::HitRecord hitRecord;
+    using namespace RTWK1;
+    RTWK1::HitRecord hitRecord;
 
     // P24
     // there is also a subtle bug
@@ -83,7 +84,7 @@ RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
         Vec3 target = hitRecord.p + hitRecord.normal + randomInUnitSphere();
 
         // send a ray from the hitpoint p to the random point s......
-        Ray newRay = RTWK::Ray( hitRecord.p, target - hitRecord.p );
+        Ray newRay = RTWK1::Ray( hitRecord.p, target - hitRecord.p );
         // and see if it hits another surface
         Vec3 newColor = surfaceColor( newRay );
 
@@ -95,12 +96,11 @@ RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
     return generateBackgroundColor( ray );
 }
 
-int main()
+TEST_CASE( "render diffuse material" )
 {
     std::ofstream ofs;
     ofs.open( "/tmp/diffuse.ppm" );
-    assert( ofs.good() );
-    RTWK::Camera camera;
-    RTWK::createImageCamAA( ofs, 200, 100, 64, camera, surfaceColor, true );
-    return 0;
+    CHECK( ofs.good() );
+    RTWK1::Camera camera;
+    RTWK1::createImageCamAA( ofs, 200, 100, 64, camera, surfaceColor, true );
 }

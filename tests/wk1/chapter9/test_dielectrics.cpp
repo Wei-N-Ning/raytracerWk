@@ -22,22 +22,30 @@
  *
  */
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+
 #include <simpleRender.hh>
 #include <material.hh>
 
 #include <fstream>
 #include <iostream>
 
-#include <cassert>
+// NOTE: there is still a bug in the implementation that will cause stack overflow.
+//       dielectric material causes the number of ray bounces to explode dramatically!
+//       therefore it MUST SET A UPPER BOUND on the bounces.
+//       exam2 fixes this problem using this method
 
-void dielectric( const char* filename )
+TEST_CASE( "dielectric and glass material" )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
+
+    std::string filename{ "/tmp/dielectric.ppm" };
 
     std::ofstream ofs;
     ofs.open( filename );
-    assert( ofs.good() );
-    RTWK::Camera camera;
+    CHECK( ofs.good() );
+    RTWK1::Camera camera;
 
     SimpleRender render;
 
@@ -66,13 +74,5 @@ void dielectric( const char* filename )
 
     render.updateWorld();
 
-    RTWK::createImageMaterial( ofs, 200, 100, 12, camera, render, true );
-}
-
-int main()
-{
-    std::cout << "dielectric test" << std::endl;
-    dielectric( "/tmp/dielectric.ppm" );
-
-    return 0;
+    RTWK1::createImageMaterial( ofs, 20, 10, 12, camera, render, true );
 }

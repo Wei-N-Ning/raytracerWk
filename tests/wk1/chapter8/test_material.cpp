@@ -2,6 +2,9 @@
 // Created by wein on 2/09/18.
 //
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+
 #include <material.hh>
 #include <simpleRender.hh>
 
@@ -12,19 +15,19 @@
 #include <map>
 #include <string>
 #include <random>
-#include <cassert>
-#include <cstdlib>
 
-void lambert()
+TEST_CASE( "lambert material" )
 {
-    using namespace RTWK;
+    std::cout << "lambert test" << '\n';
+
+    using namespace RTWK1;
 
     std::ofstream ofs;
     ofs.open( "/tmp/lambert.ppm" );
-    assert( ofs.good() );
-    RTWK::Camera camera;
+    CHECK( ofs.good() );
+    RTWK1::Camera camera;
 
-    RTWK::SimpleRender render;
+    RTWK1::SimpleRender render;
     render.m_materials[ "lambert.grey" ] = new Lambertian( { 0.5f, 0.5f, 0.5f } );
 
     render.m_entities.push_back(
@@ -38,17 +41,17 @@ void lambert()
 
     render.updateWorld();
 
-    RTWK::createImageMaterial( ofs, 200, 100, 32, camera, render, true );
+    RTWK1::createImageMaterial( ofs, 200, 100, 32, camera, render, true );
 }
 
 void metal( float fuzziness, const char* filename )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
     std::ofstream ofs;
     ofs.open( filename );
-    assert( ofs.good() );
-    RTWK::Camera camera;
+    CHECK( ofs.good() );
+    RTWK1::Camera camera;
 
     SimpleRender render;
     render.m_materials[ "lambert.red" ] = new Lambertian( { 0.8f, 0.3f, 0.3f } );
@@ -68,17 +71,15 @@ void metal( float fuzziness, const char* filename )
 
     render.updateWorld();
 
-    RTWK::createImageMaterial( ofs, 200, 100, 32, camera, render, true );
+    RTWK1::createImageMaterial( ofs, 200, 100, 32, camera, render, true );
 }
 
-int main()
+TEST_CASE( "metal material: fuzziness 0 " )
 {
-    std::cout << "lambert test" << std::endl;
-    lambert();
-    std::cout << "metal test - fuzziness: 0" << std::endl;
     metal( 0, "/tmp/metal_f0.ppm" );
-    std::cout << "metal test - fuzziness: 0.25" << std::endl;
-    metal( 0.25f, "/tmp/metal_f025.ppm" );
+}
 
-    return 0;
+TEST_CASE( "metal material: fuzziness 0.25" )
+{
+    metal( 0.25f, "/tmp/metal_f025.ppm" );
 }
