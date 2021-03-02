@@ -2,12 +2,14 @@
 // Created by wein on 26/08/18.
 //
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+
 #include <ray.hh>
 #include <vec3.hh>
 #include <ppm.hh>
 
 #include <fstream>
-#include <cassert>
 
 //! P11
 //! t * t * dot(B, B) +
@@ -16,9 +18,9 @@
 //! R * R = 0
 //! the vectors and R are all constant and known,
 //! the unknown is t
-bool hitSphere( const RTWK::Ray& ray, const RTWK::Vec3& center, float radius )
+bool hitSphere( const RTWK1::Ray& ray, const RTWK1::Vec3& center, float radius )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
     Vec3 centerToOrigin = ray.origin() - center;
 
@@ -36,28 +38,22 @@ bool hitSphere( const RTWK::Ray& ray, const RTWK::Vec3& center, float radius )
 //! "coloring red any pixel that hits a small spehere we place at -1.0
 //! on the z-axis (in the view direction)
 static constexpr float RADIUS = 0.5f;
-RTWK::Vec3 opaqueSphere( RTWK::Ray& ray )
+RTWK1::Vec3 opaqueSphere( RTWK1::Ray& ray )
 {
-    RTWK::Vec3 dir = ray.direction().normalized();
+    RTWK1::Vec3 dir = ray.direction().normalized();
     if ( hitSphere( ray, { 0, 0, -1 }, RADIUS ) )
     {
         return { 1, 0, 0 };
     }
-    return RTWK::generateBackgroundColor( ray );
+    return RTWK1::generateBackgroundColor( ray );
 }
 
-void test_renderSphere()
+TEST_CASE( "render sphere" )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
     std::ofstream ofs;
     ofs.open( "/tmp/sphere.ppm" );
-    assert( ofs.good() );
+    CHECK( ofs.good() );
     createImage( ofs, 200, 100, opaqueSphere );
-}
-
-int main()
-{
-    test_renderSphere();
-    return 0;
 }
