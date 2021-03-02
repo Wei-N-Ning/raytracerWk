@@ -24,6 +24,9 @@ download parallel stl headers from:
 
 cmake integration is similar to what is done in cxxParallel/par_stl
 
+I also have to hack pstl (i.e. oneDPL) `CMakeLists.txt` file and comment out `add_directory(tests)`,
+otherwise when I run `make test` it will run the pstl tests too (which fail)
+
 ```cmake
 set(TBB_DIR ${PROJECT_SOURCE_DIR}/3rdParty/oneapi-tbb-2021.1.1/lib/cmake/tbb)
 find_package(TBB REQUIRED tbb)

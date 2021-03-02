@@ -2,21 +2,23 @@
 // Created by wein on 26/08/18.
 //
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+
 #include <ppm.hh>
 #include <vec3.hh>
 #include <ray.hh>
 
 #include <fstream>
-#include <cassert>
 
 //! P13
 //! a common trick used for visualizing normals is to map each component
 //! to the interval from 0 to 1, and then map x,y,z to r,g,b
 //! for the normal we need the hit point, not just whether we hit or
 //! not. "Let's assume the closest hit point (smallest t)"
-float hitPoint( const RTWK::Vec3& center, float radius, const RTWK::Ray& ray )
+float hitPoint( const RTWK1::Vec3& center, float radius, const RTWK1::Ray& ray )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
     // C--->P-->(ray.origin)--> (outward)
     Vec3 centerToOrigin = ray.origin() - center;
@@ -38,9 +40,9 @@ float hitPoint( const RTWK::Vec3& center, float radius, const RTWK::Ray& ray )
 }
 
 constexpr float RADIUS = 0.5f;
-RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
+RTWK1::Vec3 surfaceColor( RTWK1::Ray& ray )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
     Vec3 center{ 0, 0, -1 };
     float t = hitPoint( center, RADIUS, ray );
@@ -55,11 +57,10 @@ RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
     return generateBackgroundColor( ray );
 }
 
-int main()
+TEST_CASE( "render surface color" )
 {
     std::ofstream ofs;
     ofs.open( "/tmp/normal.ppm" );
-    assert( ofs.good() );
-    RTWK::createImage( ofs, 200, 100, surfaceColor );
-    return 0;
+    CHECK( ofs.good() );
+    RTWK1::createImage( ofs, 200, 100, surfaceColor );
 }

@@ -2,19 +2,21 @@
 // Created by wein on 27/08/18.
 //
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+
 #include <entities.hh>
 #include <ppm.hh>
 
 #include <fstream>
 #include <limits>
-#include <cassert>
 
-RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
+RTWK1::Vec3 surfaceColor( RTWK1::Ray& ray )
 {
-    using namespace RTWK;
+    using namespace RTWK1;
 
-    RTWK::Sphere sphere( { 0, 0, -1 }, 0.5 );
-    RTWK::HitRecord hitRecord;
+    RTWK1::Sphere sphere( { 0, 0, -1 }, 0.5 );
+    RTWK1::HitRecord hitRecord;
     if ( sphere.hit( ray,
                      std::numeric_limits< float >::min(),
                      std::numeric_limits< float >::max(),
@@ -27,11 +29,10 @@ RTWK::Vec3 surfaceColor( RTWK::Ray& ray )
     return generateBackgroundColor( ray );
 }
 
-int main()
+TEST_CASE( "render surface color" )
 {
     std::ofstream ofs;
     ofs.open( "/tmp/entity.ppm" );
-    assert( ofs.good() );
-    RTWK::createImage( ofs, 200, 100, surfaceColor );
-    return 0;
+    CHECK( ofs.good() );
+    RTWK1::createImage( ofs, 200, 100, surfaceColor );
 }
