@@ -11,6 +11,8 @@ for experimentation (FP and parallelism) and learning.
 
 the accompanying tests are in `tests/wk1, wk2, wk3...`
 
+see [README.md](src/wk1/README.md)
+
 ### benchmark
 
 some short benchmark tests to compare the performance of different implementations for the

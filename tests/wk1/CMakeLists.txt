@@ -11,3 +11,4 @@ add_subdirectory(chapter9)
 add_subdirectory(chapter10)
 add_subdirectory(chapter11)
 
+add_subdirectory(exam2)

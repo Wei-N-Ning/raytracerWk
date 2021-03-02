@@ -16,3 +16,6 @@ add_library(rtwk1 STATIC
     simpleRender.hh
     )
 target_include_directories(rtwk1 PUBLIC .)
+
+add_subdirectory(exam1)
+add_subdirectory(exam2)
