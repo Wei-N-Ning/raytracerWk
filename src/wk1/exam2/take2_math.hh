@@ -123,6 +123,9 @@ inline Vec3 at( const Ray& r, double t ) noexcept
 
 inline Vec3 reflect( const Vec3& v, const Vec3& n )
 {
+    // G.intro 5th P/498
+    // projection matrix: (I - 2 n nT)
+    // to project a vector v, do: v (I - 2 n nT) = v - 2 n (nT v) = v - 2 n (n . v)
     return v - n * dot( v, n ) * 2;
 }
 
