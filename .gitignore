@@ -1,7 +1,8 @@
 build
 .idea
 .vscode
-.cmake-build-debug
+cmake-build-debug
+cmake-build-release
 *.swp
 .gdb_history
 *.pyc
